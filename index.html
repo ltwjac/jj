@@ -1,232 +1,1129 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-HK" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LTWY - 2026 濟州二人世界自駕遊</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; background-color: #f5f5f4; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .custom-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            color: #ffffff;
+            font-weight: 800;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        .custom-pin:hover {
+            transform: scale(1.18);
+            z-index: 1000 !important;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            padding: 0;
+            background: #ffffff;
+        }
+        .leaflet-popup-content {
+            margin: 8px 10px !important;
+            line-height: 1.35;
+            max-width: 215px !important;
+        }
+        .leaflet-popup-tip {
+            background: #ffffff;
+        }
+        .map-focus-pulse {
+            box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.4);
+            transition: box-shadow 0.3s ease;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+<body class="min-h-screen flex flex-col bg-stone-100 text-stone-900 text-sm antialiased">
 
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-teal-600 to-cyan-700 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">✈️ LTWY - 2026 濟州二人世界自駕遊</h1>
-                <p class="text-xs text-teal-100 mt-0.5">全面升級血拼、美食與浪漫蜜月之旅</p>
+    <!-- 密碼保護遮罩畫面 -->
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-stone-900/90 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-stone-200 p-6 w-full max-w-sm space-y-4 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 text-xl mx-auto">
+                <i class="fa-solid fa-lock"></i>
             </div>
-            <div class="bg-white/20 px-3 py-1 rounded-full text-xs font-semibold">
-                4天3夜
+            <div>
+                <h2 class="text-base font-bold text-stone-900 mb-1">行程保護</h2>
+                <p class="text-xs text-stone-500">請輸入密碼以解鎖濟州自駕遊行程</p>
+            </div>
+            <form onsubmit="checkPassword(event)" class="space-y-3">
+                <input type="password" id="pw-input" placeholder="請輸入密碼" required
+                    class="w-full px-4 py-3 rounded-xl border border-stone-300 text-center text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent">
+                <p id="error-msg" class="text-xs text-rose-500 hidden font-medium">密碼錯誤，請重新輸入</p>
+                <button type="submit" class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-sm shadow-md transition">
+                    解鎖行程
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 手機頂部標題與頁籤列 (Sticky) -->
+    <header id="main-header" class="bg-white border-b border-stone-200 px-3 py-2 sticky top-0 z-40 shadow-xs">
+        <div class="flex flex-col gap-2">
+            <!-- 頂部首行：雙行標題 + 寬鬆工具按鈕 (固定高度 h-8) -->
+            <div class="flex items-center justify-between gap-1.5">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-rose-500 font-bold text-xs shrink-0">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                    <div class="flex flex-col leading-tight">
+                        <span class="text-xs font-black text-rose-600 tracking-wider">LTWY</span>
+                        <span class="text-[11px] font-bold text-stone-700">2026 濟州</span>
+                    </div>
+                </div>
+                
+                <!-- 工具按鈕組 -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <!-- Checklist 按鈕 -->
+                    <button onclick="switchTab('todo')" id="btn-tab-todo" class="h-8 px-2.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 active:bg-emerald-100 transition flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-list-check text-emerald-600 mr-1 text-xs"></i>Checklist
+                    </button>
+                    <!-- Currency 兌換器按鈕 -->
+                    <button onclick="openCurrencyModal()" id="btn-currency" class="h-8 px-2.5 text-xs font-bold rounded-lg bg-amber-50 text-amber-800 border border-amber-200 active:bg-amber-100 transition flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-coins text-amber-600 mr-1 text-xs"></i>匯率
+                    </button>
+                    <!-- 行程手冊按鈕 -->
+                    <button onclick="switchTab('info')" id="btn-tab-info" class="h-8 px-2.5 text-xs font-bold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 active:bg-rose-100 transition flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-book-open text-rose-600 mr-1 text-xs"></i>手冊
+                    </button>
+                </div>
+            </div>
+
+            <!-- 每日切換按鈕 (Day 1 - Day 4 & 全部) -->
+            <div class="grid grid-cols-5 gap-1.5 pt-0.5" id="tab-buttons">
+                <button onclick="switchTab(1)" id="btn-tab-1" class="py-2 text-xs font-bold rounded-lg bg-stone-100 text-stone-700 active:bg-stone-200 transition text-center">Day 1</button>
+                <button onclick="switchTab(2)" id="btn-tab-2" class="py-2 text-xs font-bold rounded-lg bg-stone-100 text-stone-700 active:bg-stone-200 transition text-center">Day 2</button>
+                <button onclick="switchTab(3)" id="btn-tab-3" class="py-2 text-xs font-bold rounded-lg bg-stone-100 text-stone-700 active:bg-stone-200 transition text-center">Day 3</button>
+                <button onclick="switchTab(4)" id="btn-tab-4" class="py-2 text-xs font-bold rounded-lg bg-stone-100 text-stone-700 active:bg-stone-200 transition text-center">Day 4</button>
+                <button onclick="switchTab('all')" id="btn-tab-all" class="py-2 text-xs font-bold rounded-lg bg-rose-600 text-white shadow-xs transition text-center"><i class="fa-solid fa-globe"></i> 全部</button>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-8">
+    <!-- 主行程地圖與時間軸區 -->
+    <main class="w-full p-3 flex flex-col gap-3 flex-1" id="main-grid">
+        <!-- 互動地圖容器 -->
+        <div id="map-section" class="w-full bg-white rounded-xl shadow-xs border border-stone-200 flex flex-col overflow-hidden shrink-0 transition-all duration-300" style="height: 350px;">
+            <div class="bg-stone-50 px-3 py-2 border-b border-stone-200 text-xs font-semibold text-stone-600 flex justify-between items-center shrink-0 z-10">
+                <span id="map-indicator"><i class="fa-solid fa-map-location-dot text-rose-500 mr-1.5"></i> 全濟州實時標記與自駕定位</span>
+                <span id="map-status" class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-[11px]">全濟州總覽 (所有地點)</span>
+            </div>
+            <div id="interactive-map" class="flex-1 w-full h-full bg-stone-200 relative z-0"></div>
+        </div>
 
-        <!-- Day 1 -->
-        <section class="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100">
-            <div class="bg-teal-700 text-white px-5 py-3 flex justify-between items-center">
-                <h2 class="font-bold text-lg"><i class="fa-solid fa-plane-arrival mr-2"></i> Day 1：機場 ➔ 南部海景 ➔ 韓牛晚餐 ➔ 新緣橋煙花</h2>
-                <span class="text-xs bg-teal-800 px-2.5 py-1 rounded-full">第一日</span>
+        <!-- 時間軸容器 -->
+        <div class="w-full bg-white rounded-xl shadow-xs border border-stone-200 flex flex-col overflow-hidden flex-1">
+            <div class="bg-stone-50 px-4 py-3 border-b border-stone-200 flex justify-between items-center shrink-0">
+                <h2 id="timeline-title" class="font-bold text-stone-900 text-xs">全濟州 4 日行程總覽 (含所有後備方案)</h2>
+                <span id="timeline-date" class="text-xs px-2.5 py-0.5 bg-rose-50 text-rose-600 rounded-full font-medium">全部行程 + 後備</span>
             </div>
-            <div class="p-5 space-y-4">
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">06:05</span>
-                    <div><strong class="text-slate-900">抵達濟州國際機場 (LJ714)</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">07:00</span>
-                    <div><strong class="text-slate-900">濟州機場租車中心</strong> - 成功取車，展開自駕遊！</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">07:30</span>
-                    <div><strong class="text-slate-900">彩虹公路 (도두동 무지개해안도로)</strong> - 機場附近色彩繽紛嘅海岸防波堤打卡拍照。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">08:30</span>
-                    <div><strong class="text-slate-900">② 姊妹麵條 (Jamae Guksu)</strong> - 【濟州市區名店】品嚐濃郁大骨豬肉麵。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">10:30</span>
-                    <div><strong class="text-slate-900">濟州 Premium Outlet (神話世界)</strong> - 先去大型 Outlet 行街買名牌與潮流服飾。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">12:30</span>
-                    <div><strong class="text-slate-900">Zen Hideaway@Jeju (Check-in)</strong> - 抵達山房山海岸邊之無敵海景精品旅宿。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">13:30</span>
-                    <div><strong class="text-slate-900">⑩ 고집돌우럭 중문점 (鰲魚套餐)</strong> - 【中文區名店】鮮甜美味石砸鰲魚套餐。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">15:00</span>
-                    <div><strong class="text-slate-900">藥泉寺 & 大浦海岸柱狀節理帶</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">16:30</span>
-                    <div><strong class="text-slate-900">The Cliff (崖邊 Cafe)</strong> - 坐落於懸崖旁的浪漫海景咖啡廳。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">18:00</span>
-                    <div><strong class="text-slate-900">西歸浦高質頂級韓牛晚餐</strong> - 嘆極致嫩滑炭火燒肉，告別頹食！</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-purple-500 pl-3 bg-purple-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-purple-600 w-16 pt-0.5">20:00</span>
-                    <div><strong class="text-slate-900">🎆 西歸浦港新緣橋 (音樂噴泉及煙花秀)</strong> - 食飽後欣賞西歸浦夜海與煙花表演。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">21:30</span>
-                    <div><strong class="text-slate-900">返回 Zen Hideaway@Jeju 休息</strong></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Day 2 -->
-        <section class="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100">
-            <div class="bg-teal-700 text-white px-5 py-3 flex justify-between items-center">
-                <h2 class="font-bold text-lg"><i class="fa-solid fa-route mr-2"></i> Day 2：Zen Hideaway ➔ 東部環島 ➔ 黑豬肉</h2>
-                <span class="text-xs bg-teal-800 px-2.5 py-1 rounded-full">第二日</span>
-            </div>
-            <div class="p-5 space-y-4">
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">08:00</span>
-                    <div><strong class="text-slate-900">由 Zen Hideaway 退房出發</strong> - 向東部出發環島。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">09:30</span>
-                    <div><strong class="text-slate-900">城山日出峰</strong> - 登高欣賞世界自然遺產壯麗景色。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">11:30</span>
-                    <div><strong class="text-slate-900">⑤ 명진전복 (明珍鮑魚)</strong> - 【舊左名店】招牌鮑魚石鍋飯與鮑魚粥。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">13:00</span>
-                    <div><strong class="text-slate-900">月汀里海灘 (투명카약 獨木舟)</strong> - 喺清澈果凍海體驗透明獨木舟。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">14:30</span>
-                    <div><strong class="text-slate-900">月汀里海邊 Cafe 嘆下午茶</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">16:00</span>
-                    <div><strong class="text-slate-900">🥯 London Bagel Museum (濟州店)</strong> - 購買人氣貝果做手信/點心。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">17:30</span>
-                    <div><strong class="text-slate-900">Shilla Stay (Check-in 酒店安頓)</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">18:30</span>
-                    <div><strong class="text-slate-900">③ 돈사돈 (Donsadon 黑豬肉)</strong> - 【濟州市區名店】厚切黑豬肉專人炭火代烤。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">20:30</span>
-                    <div><strong class="text-slate-900">返回 Shilla Stay 休息</strong></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Day 3 -->
-        <section class="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100">
-            <div class="bg-teal-700 text-white px-5 py-3 flex justify-between items-center">
-                <h2 class="font-bold text-lg"><i class="fa-solid fa-bag-shopping mr-2"></i> Day 3：倫敦貝果 ➔ 咸德海女包飯 ➔ 涯月 ➔ 全日血拼專日</h2>
-                <span class="text-xs bg-teal-800 px-2.5 py-1 rounded-full">第三日 (購物專日)</span>
-            </div>
-            <div class="p-5 space-y-4">
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">09:00</span>
-                    <div><strong class="text-slate-900">由 Shilla Stay 酒店出發</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">09:45</span>
-                    <div><strong class="text-slate-900">🥯 London Bagel Museum (再次造訪/領取預訂)</strong> - 確保買到心水新鮮貝果。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">11:00</span>
-                    <div><strong class="text-slate-900">咸德海女包飯 (해녀의집) 【早午餐】</strong> - 前往咸德海邊品嚐極具特色嘅新鮮海女包飯。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">13:00</span>
-                    <div><strong class="text-slate-900">⑥ 놀맨 (Nolman 海鮮拉麵)</strong> - 涯月海邊嘆新鮮海鮮即煮拉麵。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">14:15</span>
-                    <div><strong class="text-slate-900">⑦ 봄날카페 (Bomnal Cafe)</strong> - 涯月極具人氣浪漫海景 Cafe 飲咖啡。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-purple-500 pl-3 bg-purple-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-purple-600 w-16 pt-0.5">15:30</span>
-                    <div><strong class="text-slate-900">新濟州蓮洞商圈 & 新羅免稅店</strong> - 美妝與名牌手袋血拼！</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-purple-500 pl-3 bg-purple-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-purple-600 w-16 pt-0.5">17:00</span>
-                    <div><strong class="text-slate-900">七星街 (칠성로) & 中央路 (중앙로)</strong> - 潮流服飾、鞋履與特色小店街行街。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-purple-500 pl-3 bg-purple-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-purple-600 w-16 pt-0.5">18:45</span>
-                    <div><strong class="text-slate-900">Lotte Mart 濟州店 (大型量販)</strong> - 超市大掃貨，瘋狂入貨零食、即食麵。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">20:00</span>
-                    <div><strong class="text-slate-900">三姓穴海鮮湯 【豐富晚餐】</strong> - 活鮑魚八爪魚海鮮鍋補充體力。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">21:15</span>
-                    <div><strong class="text-slate-900">返回 Shilla Stay 休息</strong> - 整理豐富戰利品。</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Day 4 -->
-        <section class="bg-white rounded-2xl shadow-md overflow-hidden border border-slate-100">
-            <div class="bg-teal-700 text-white px-5 py-3 flex justify-between items-center">
-                <h2 class="font-bold text-lg"><i class="fa-solid fa-plane-departure mr-2"></i> Day 4：挾才海灘 ➔ 市區名店 ➔ 醬油蟹 ➔ 機場返港</h2>
-                <span class="text-xs bg-teal-800 px-2.5 py-1 rounded-full">第四日 (回程)</span>
-            </div>
-            <div class="p-5 space-y-4">
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">09:00</span>
-                    <div><strong class="text-slate-900">由 Shilla Stay 出發 (辦理退房)</strong></div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">10:00</span>
-                    <div><strong class="text-slate-900">挾才海水浴場 & Umu 手工布丁</strong> - 欣賞西部漸層玻璃海，打卡布丁。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">11:30</span>
-                    <div><strong class="text-slate-900">① 우진해장국 (Ujin Haejangguk) 【早午餐】</strong> - 濟州市區超濃郁蔬菜牛肉湯。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">13:00</span>
-                    <div><strong class="text-slate-900">④ 제주김만복 本店 (金萬福)</strong> - 招牌鮑魚蛋卷菜包飯輕食。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">14:30</span>
-                    <div><strong class="text-slate-900">龍潭海岸 Café</strong> - 嘆海景下午茶與欣賞海風。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-amber-500 pl-3 bg-amber-50/50 p-2 rounded">
-                    <span class="text-xs font-bold text-amber-600 w-16 pt-0.5">16:30</span>
-                    <div><strong class="text-slate-900">本家醬油蟹 【完美晚餐】</strong> - 旅程最後一餐！鮮美無腥味醬油蟹配蟹膏飯。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">18:00</span>
-                    <div><strong class="text-slate-900">濟州國際機場 (還車與登機)</strong> - 前往機場辦理 21:30 起飛之 LJ713 航班手續。</div>
-                </div>
-                <div class="flex items-start space-x-3 border-l-2 border-teal-500 pl-3">
-                    <span class="text-xs font-bold text-teal-600 w-16 pt-0.5">21:30</span>
-                    <div><strong class="text-slate-900">搭乘航班 LJ713 離開濟州</strong> - 23:35 安全返抵香港 T1，結束完美蜜月之旅！</div>
-                </div>
-            </div>
-        </section>
-
+            <div id="timeline-container" class="p-3 space-y-3 overflow-y-auto"></div>
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-6 text-xs text-slate-400">
-        <p>© 2026 LTWY Jeju Self-Drive Trip. All Rights Reserved.</p>
-    </footer>
+    <!-- 行程手冊頁面 -->
+    <div id="info-page" class="hidden w-full p-3 space-y-4 my-2">
+        <div class="bg-white rounded-xl shadow-xs border border-stone-200 p-4 space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-2.5">
+                <h2 class="text-sm font-bold text-stone-900 flex items-center gap-1.5">
+                    <i class="fa-solid fa-plane-departure text-rose-500"></i> LTWY - 2026 濟州自駕遊手冊
+                </h2>
+                <button onclick="switchTab('all')" class="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1 rounded-lg font-bold transition">
+                    <i class="fa-solid fa-arrow-left mr-1"></i>返回行程
+                </button>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
+                    <span class="font-bold text-rose-600 block mb-1 text-xs">去程航班 (LJ714)</span>
+                    <p class="text-xs"><strong>時間：</strong>02:00 香港 T1 ➔ 06:05 濟州機場 (代號: UR69WB)</p>
+                </div>
+                <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
+                    <span class="font-bold text-rose-600 block mb-1 text-xs">回程航班 (LJ713)</span>
+                    <p class="text-xs"><strong>時間：</strong>21:30 濟州機場 ➔ 23:35 香港 T1 (代號: CWB8G5)</p>
+                </div>
+            </div>
+            <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
+                <span class="font-bold text-stone-900 block mb-1.5 text-xs">🏨 酒店住宿總覽</span>
+                <p class="text-xs mb-1"><strong>第 1 晚：</strong>Zen Hideaway@Jeju (山房山海岸度假無敵海景精品旅宿)</p>
+                <p class="text-xs"><strong>第 2-3 晚：</strong>Shilla Stay (新濟州商務酒店，室內免費停車)</p>
+            </div>
+            <div class="border-t border-stone-200 pt-4">
+                <h3 class="font-bold text-stone-900 text-sm mb-3">📋 每日行程詳細</h3>
+                <div id="info-text-container" class="space-y-4 text-xs text-stone-800"></div>
+            </div>
+        </div>
+    </div>
 
+    <!-- 雲端同步 Checklist 頁面 -->
+    <div id="todo-page" class="hidden w-full p-3 space-y-3 my-2">
+        <div class="bg-white rounded-xl shadow-xs border border-stone-200 p-4 space-y-3 text-xs">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-2.5">
+                <div>
+                    <h2 class="text-sm font-extrabold text-stone-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud text-emerald-600"></i> 二人同行實時雲端 Checklist
+                    </h2>
+                    <p class="text-[11px] text-stone-500 mt-0.5">你與太太可隨時同步新增及勾選行李清單</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="sync-status" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">已連線</span>
+                    <button onclick="switchTab('all')" class="text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 px-2.5 py-1 rounded-lg font-bold transition">
+                        <i class="fa-solid fa-arrow-left mr-1"></i>返回
+                    </button>
+                </div>
+            </div>
+
+            <!-- 新增項目表單 -->
+            <form onsubmit="addTodoItem(event)" class="flex gap-2">
+                <input type="text" id="todo-input" placeholder="輸入需要攜帶的物品或事項..." required
+                    class="flex-1 px-3 py-2.5 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-stone-50">
+                <button type="submit" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1 shadow-2xs">
+                    <i class="fa-solid fa-plus"></i> 新增
+                </button>
+            </form>
+
+            <!-- 任務清單列表 -->
+            <div id="todo-list-container" class="space-y-2 pt-1">
+                <div class="text-center py-6 text-stone-400 text-xs">載入清單中...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Currency 兌換器彈出視窗 (Modal) -->
+    <div id="currency-modal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-sm overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal 頂部標題 -->
+            <div class="bg-amber-500 text-white px-4 py-3 flex justify-between items-center shadow-xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-amber-400/80 flex items-center justify-center text-white text-sm">
+                        <i class="fa-solid fa-calculator"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-extrabold text-sm leading-tight">濟州旅行匯率計算機</h3>
+                        <p class="text-[10px] text-amber-100">韓圜 (KRW) ⇄ 港幣 (HKD) 即時兌換</p>
+                    </div>
+                </div>
+                <button onclick="closeCurrencyModal()" class="w-8 h-8 rounded-full bg-amber-600/60 hover:bg-amber-600 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Modal 內容區 -->
+            <div class="p-4 space-y-3.5 text-xs overflow-y-auto max-h-[80vh]">
+                <!-- 匯率基準設定列 -->
+                <div class="bg-stone-50 p-2.5 rounded-xl border border-stone-200 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-stone-600 font-bold text-xs">參考匯率：</span>
+                        <span class="text-stone-800 font-semibold text-xs">1 HKD =</span>
+                        <input type="number" id="currency-rate" step="0.5" value="175" oninput="onRateChange()"
+                            class="w-16 px-1.5 py-0.5 border border-stone-300 rounded font-bold text-center text-xs bg-white text-stone-900 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                        <span class="text-stone-800 font-semibold text-xs">KRW</span>
+                    </div>
+                    <button onclick="fetchLiveRate()" id="btn-fetch-rate" title="獲取最新在線外匯匯率"
+                        class="px-2 py-1 rounded bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-[10px] transition shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-arrows-rotate text-[10px]"></i><span>更新</span>
+                    </button>
+                </div>
+
+                <!-- 雙向輸入區 -->
+                <div class="space-y-2.5">
+                    <!-- 韓圜 (KRW) 輸入 -->
+                    <div id="box-krw" onclick="setActiveInput('krw')" class="bg-amber-50/70 p-3 rounded-xl border-2 border-amber-400 cursor-pointer transition">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="font-extrabold text-amber-900 text-xs flex items-center gap-1 pointer-events-none">
+                                <span class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px]">₩</span>
+                                韓圜 (KRW)
+                            </label>
+                            <span id="tag-krw" class="text-[10px] text-amber-700 font-bold bg-amber-200/60 px-1.5 py-0.5 rounded">輸入中</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-stone-400 font-bold text-base">₩</span>
+                            <input type="text" id="input-krw" placeholder="0" readonly
+                                class="w-full pl-8 pr-3 py-2 border border-amber-300 rounded-lg text-lg font-black text-stone-900 bg-white focus:outline-none pointer-events-none">
+                        </div>
+                    </div>
+
+                    <!-- 雙向切換指示符號 -->
+                    <div class="flex justify-center -my-1">
+                        <div class="w-6 h-6 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 text-xs shadow-2xs">
+                            ↕
+                        </div>
+                    </div>
+
+                    <!-- 港幣 (HKD) 輸入 -->
+                    <div id="box-hkd" onclick="setActiveInput('hkd')" class="bg-stone-50 p-3 rounded-xl border border-stone-200 cursor-pointer transition">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="font-extrabold text-stone-700 text-xs flex items-center gap-1 pointer-events-none">
+                                <span class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">$</span>
+                                港幣 (HKD)
+                            </label>
+                            <span id="tag-hkd" class="text-[10px] text-stone-500 font-semibold hidden">點擊輸入</span>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-stone-400 font-bold text-base">HK$</span>
+                            <input type="text" id="input-hkd" placeholder="0" readonly
+                                class="w-full pl-12 pr-3 py-2 border border-stone-300 rounded-lg text-lg font-black text-stone-900 bg-white focus:outline-none pointer-events-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 完美對齊的 4x4 NumPad 數字鍵盤 -->
+                <div class="grid grid-cols-4 gap-1.5 pt-1 bg-stone-100 p-2 rounded-xl border border-stone-200">
+                    <button type="button" onclick="numpadPress('1')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">1</button>
+                    <button type="button" onclick="numpadPress('2')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">2</button>
+                    <button type="button" onclick="numpadPress('3')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">3</button>
+                    <button type="button" onclick="numpadPress('C')" class="py-3 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 font-bold text-rose-700 rounded-lg shadow-2xs border border-rose-200 text-xs flex items-center justify-center">C 清空</button>
+                    
+                    <button type="button" onclick="numpadPress('4')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">4</button>
+                    <button type="button" onclick="numpadPress('5')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">5</button>
+                    <button type="button" onclick="numpadPress('6')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">6</button>
+                    <button type="button" onclick="numpadPress('DEL')" class="py-3 bg-stone-200 hover:bg-stone-300 active:bg-stone-400 font-bold text-stone-700 rounded-lg shadow-2xs border border-stone-300 text-xs flex items-center justify-center"><i class="fa-solid fa-delete-left text-sm"></i></button>
+
+                    <button type="button" onclick="numpadPress('7')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">7</button>
+                    <button type="button" onclick="numpadPress('8')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">8</button>
+                    <button type="button" onclick="numpadPress('9')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">9</button>
+                    <button type="button" onclick="numpadPress('00')" class="py-3 bg-stone-50 hover:bg-stone-100 active:bg-stone-200 font-bold text-stone-700 rounded-lg shadow-2xs border border-stone-200 text-xs flex items-center justify-center">00</button>
+
+                    <button type="button" onclick="numpadPress('0')" class="col-span-2 py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">0</button>
+                    <button type="button" onclick="numpadPress('.')" class="py-3 bg-stone-50 hover:bg-stone-100 active:bg-stone-200 font-bold text-stone-700 rounded-lg shadow-2xs border border-stone-200 text-sm">.</button>
+                    <button type="button" onclick="closeCurrencyModal()" class="py-3 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 font-bold text-white rounded-lg shadow-2xs text-xs flex items-center justify-center"><i class="fa-solid fa-check text-sm"></i></button>
+                </div>
+            </div>
+
+            <!-- Modal 底部關閉按鈕 -->
+            <div class="p-3 bg-stone-50 border-t border-stone-200 text-center">
+                <button onclick="closeCurrencyModal()" class="w-full py-2 rounded-xl bg-stone-800 hover:bg-stone-900 active:bg-black text-white font-bold text-xs shadow-xs transition">
+                    完成關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Firebase SDKs with LocalStorage fallback -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBxOZb5BFIrgmuqr0lBLMkbXoatfLh8-r8",
+          authDomain: "jj-e7a2a.firebaseapp.com",
+          projectId: "jj-e7a2a",
+          storageBucket: "jj-e7a2a.firebasestorage.app",
+          messagingSenderId: "800659737538",
+          appId: "1:800659737538:web:195c9a1382e213d716245b",
+          measurementId: "G-B9RH9LGC28"
+        };
+
+        let db = null;
+        let useLocalFallback = false;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jeju-couple-trip-2026';
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            db = getFirestore(app);
+            
+            signInAnonymously(auth).then(() => {
+                console.log("Firebase 雲端連線成功");
+                initFirestoreListener();
+            }).catch(err => {
+                console.warn("Firebase Auth 未啟用，切換至本地模式", err);
+                enableLocalFallbackMode("本地模式 (離線可用)");
+            });
+        } catch (e) {
+            console.warn("Firebase 初始化失敗，使用本地模式", e);
+            enableLocalFallbackMode("離線模式");
+        }
+
+        function enableLocalFallbackMode(statusText) {
+            useLocalFallback = true;
+            document.getElementById('sync-status').innerText = statusText;
+            document.getElementById('sync-status').className = "px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px] font-bold";
+            renderLocalTodos();
+        }
+
+        function initFirestoreListener() {
+            if (useLocalFallback || !db) return;
+            const todosRef = collection(db, 'artifacts', appId, 'public', 'data', 'travel_todos');
+            onSnapshot(todosRef, (snapshot) => {
+                const listContainer = document.getElementById('todo-list-container');
+                listContainer.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    listContainer.innerHTML = `<div class="text-center py-6 text-stone-400 text-xs">目前清單係空的，快啲新增第一項行李啦！</div>`;
+                    return;
+                }
+
+                let items = [];
+                snapshot.forEach(docSnap => {
+                    items.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                items.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+                items.forEach(item => {
+                    renderTodoElement(item);
+                });
+            }, (error) => {
+                console.error("Firestore 同步錯誤", error);
+                enableLocalFallbackMode("網絡異常 (已切換本地)");
+            });
+        }
+
+        function renderTodoElement(item) {
+            const listContainer = document.getElementById('todo-list-container');
+            if (listContainer.innerHTML.includes('載入清單中') || listContainer.innerHTML.includes('目前清單係空的')) {
+                listContainer.innerHTML = '';
+            }
+            const div = document.createElement('div');
+            div.className = `flex items-center justify-between p-3 rounded-xl border transition ${item.completed ? 'bg-stone-100 border-stone-200 text-stone-400 line-through' : 'bg-stone-50 border-stone-200 text-stone-800'}`;
+            div.innerHTML = `
+                <div class="flex items-center gap-2.5 flex-1 cursor-pointer" onclick="toggleTodo('${item.id}', ${!item.completed})">
+                    <input type="checkbox" ${item.completed ? 'checked' : ''} class="w-4 h-4 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500 pointer-events-none">
+                    <span class="font-medium text-xs break-all">${escapeHtml(item.text)}</span>
+                </div>
+                <button onclick="deleteTodo('${item.id}')" class="text-stone-400 hover:text-rose-600 p-1.5 transition ml-2">
+                    <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+            `;
+            listContainer.appendChild(div);
+        }
+
+        function getLocalTodos() {
+            try {
+                return JSON.parse(localStorage.getItem('jeju_todos') || '[]');
+            } catch(e) { return []; }
+        }
+
+        function saveLocalTodos(items) {
+            try {
+                localStorage.setItem('jeju_todos', JSON.stringify(items));
+            } catch(e) {}
+        }
+
+        function renderLocalTodos() {
+            const listContainer = document.getElementById('todo-list-container');
+            listContainer.innerHTML = '';
+            const items = getLocalTodos();
+            if (items.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-6 text-stone-400 text-xs">目前清單係空的，快啲新增第一項行李啦！</div>`;
+                return;
+            }
+            items.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+            items.forEach(item => renderTodoElement(item));
+        }
+
+        window.addTodoItem = async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (useLocalFallback || !db) {
+                const items = getLocalTodos();
+                items.push({ id: 'loc_' + Date.now(), text, completed: false, createdAt: Date.now() });
+                saveLocalTodos(items);
+                renderLocalTodos();
+                input.value = '';
+                return;
+            }
+
+            try {
+                const todosRef = collection(db, 'artifacts', appId, 'public', 'data', 'travel_todos');
+                await addDoc(todosRef, { text, completed: false, createdAt: Date.now() });
+                input.value = '';
+            } catch (err) {
+                console.error("新增失敗", err);
+            }
+        };
+
+        window.toggleTodo = async function(id, completed) {
+            if (useLocalFallback || !db) {
+                const items = getLocalTodos();
+                const target = items.find(i => i.id === id);
+                if (target) { target.completed = completed; saveLocalTodos(items); renderLocalTodos(); }
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'travel_todos', id);
+                await updateDoc(docRef, { completed: completed });
+            } catch (err) { console.error("更新失敗", err); }
+        };
+
+        window.deleteTodo = async function(id) {
+            if (useLocalFallback || !db) {
+                let items = getLocalTodos();
+                items = items.filter(i => i.id !== id);
+                saveLocalTodos(items);
+                renderLocalTodos();
+                return;
+            }
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'travel_todos', id);
+                await deleteDoc(docRef);
+            } catch (err) { console.error("刪除失敗", err); }
+        };
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+
+    <!-- JavaScript 主邏輯 -->
+    <script>
+        let map = null;
+        let markersLayer = null;
+        let currentFocusedMarker = null;
+
+        const dayColors = {
+            1: { bg: 'bg-rose-500', hex: '#f43f5e', border: '#e11d48' },
+            2: { bg: 'bg-amber-500', hex: '#f59e0b', border: '#d97706' },
+            3: { bg: 'bg-emerald-500', hex: '#10b981', border: '#059669' },
+            4: { bg: 'bg-indigo-500', hex: '#6366f1', border: '#4f46e5' }
+        };
+
+        const itineraryData = {
+            1: {
+                title: "Day 1：機場 ➔ 彩虹公路 ➔ 麵條 ➔ Outlet ➔ 鰲魚 ➔ 韓牛晚餐 ➔ 新緣橋煙花",
+                date: "Day 1 · 航班 LJ714",
+                locations: [
+                    { id: '1-1', time: "06:05", title: "抵達濟州國際機場 (LJ714)", desc: "由香港 T1 出發搭乘 LJ714 順利降落濟州，辦理入境及提取行李。", tag: "航班", parking: "🅿️ 機場大停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往租車中心約 2km)", lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
+                    { id: '1-2', time: "07:00", title: "濟州機場租車中心 (成功取車)", desc: "清晨準時完成手續並提取車輛，正式展開二人世界自駕之旅！", tag: "取車", parking: "🅿️ 租車專用場", nextDrive: "🚗 駕駛約 10 分鐘 (往彩虹公路約 4km)", lat: 33.5110, lng: 126.4920, query: "Jeju International Airport car rental, Jeju-do" },
+                    { id: '1-3', time: "07:30", title: "彩虹公路 (도두동 무지개해안도로)", desc: "機場附近色彩繽紛嘅海岸防波堤，第一站打卡拍照留下甜蜜合照。", tag: "打卡景點", parking: "🅿️ 路邊臨時停車", nextDrive: "🚗 駕駛約 10 分鐘 (往市區麵店約 4km)", lat: 33.5002, lng: 126.4785, query: "Dodubong Rainbow Coastal Road, Jeju-do, South Korea" },
+                    { id: '1-4', time: "08:30", title: "② 姊妹麵條 (Jamae Guksu)", desc: "【濟州市區名店】清晨品嚐濃郁大骨熬製的熱騰騰濟州傳統豬肉麵。", tag: "10大名店②", parking: "🅿️ 餐廳免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (市區往神話世界 Outlet 約 30km)", lat: 33.5123, lng: 126.5284, query: "Jamae Guksu, Jeju-do, South Korea" },
+                    { id: '1-5', time: "10:30", title: "濟州 Premium Outlet (神話世界)", desc: "【血拼購物】去 Zen Hideaway 擺低行李前，先去大型 Outlet 行街買名牌與潮流服飾！", tag: "購物血拼", parking: "🅿️ Outlet 免費大型停車場", nextDrive: "🚗 駕駛約 25 分鐘 (Outlet 往 Zen Hideaway 約 20km)", lat: 33.3051, lng: 126.3192, query: "Jeju Shinhwa World Premium Outlet, Jeju-do, South Korea" },
+                    { id: '1-6', time: "12:30", title: "Zen Hideaway@Jeju (Check-in/寄存行李)", desc: "抵達山房山海岸邊之無敵海景精品旅宿，辦理入住或寄存行李。", tag: "酒店抵達", parking: "🅿️ 民宿免費專屬停車", nextDrive: "🚗 駕駛約 15 分鐘 (往中文區鰲魚套餐約 12km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-7', time: "13:30", title: "⑩ 고집돌우럭 중문점 (鰲魚套餐)", desc: "【中文區名店】海鮮控必食！鮮甜肥美嘅純石砸鰲魚套餐，極致惹味下飯。", tag: "10大名店⑩", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往藥泉寺約 3km)", lat: 33.2512, lng: 126.4110, query: "Gojip Dol Urok Jungmun, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-8', time: "15:00", title: "藥泉寺 & 大浦海岸柱狀節理帶", desc: "參觀韓國宏偉依海大寺，並欣賞大自然方形火山熔岩石柱奇觀。", tag: "自然景點", parking: "🅿️ 景點免費/收費停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往The Cliff約 3km)", lat: 33.2372, lng: 126.4250, query: "Daepo Haean Jusangjeolli Cliff, Jeju-do, South Korea" },
+                    { id: '1-9', time: "16:30", title: "The Cliff (崖邊 Cafe)", desc: "坐落於懸崖旁的浪漫海景咖啡廳，對著湛藍大海嘆咖啡享受日落氛圍。", tag: "人氣 Cafe", parking: "🅿️ 中文區公用停車場", nextDrive: "🚗 駕駛約 25 分鐘 (中文區往西歸浦韓牛約 14km)", lat: 33.2458, lng: 126.4112, query: "The Cliff, Jungmun, Jeju-do, South Korea" },
+                    { id: '1-10', time: "18:00", title: "西歸浦頂級韓牛晚餐 (草溪韓牛/畜協鮮肉)", desc: "【極品韓牛晚餐】在西歸浦品嚐頂級熟成炭火燒韓牛，肉嫩多汁入口即溶，告別頹食！", tag: "極品韓牛晚餐", parking: "🅿️ 餐廳專用停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往新緣橋約 2km)", lat: 33.2520, lng: 126.5620, query: "Chogye Hanu Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-11', time: "20:00", title: "🎆 西歸浦港新緣橋 (音樂噴泉及煙花秀)", desc: "【每週五/六限定】食飽韓牛後，漫步欣賞新緣橋五彩燈光夜海、音樂噴泉與精彩煙花表演！", tag: "限定夜景", parking: "🅿️ 新緣橋大型免費停車場", nextDrive: "🚗 駕駛約 35 分鐘 (返回民宿約 18km)", lat: 33.2403, lng: 126.5601, query: "Saeyeongyo Bridge, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-12', time: "21:30", title: "返回 Zen Hideaway@Jeju 休息", desc: "返回海岸民宿安睡，聽著浪濤聲入睡。", tag: "返回民宿", parking: "🅿️ 民宿免費專屬停車", nextDrive: null, lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" }
+                ],
+                backups: [
+                    { id: 'b-1-1', title: "山房山龍頭海岸", desc: "民宿附近的壯麗火山岩海岸步道。", lat: 33.2315, lng: 126.3145, query: "Yongmeori Coast, Seogwipo, Jeju-do, South Korea" },
+                    { id: 'b-1-2', title: "中文海水浴場", desc: "火山岩沙灘漫步，欣賞絕美漸層日落。", lat: 33.2447, lng: 126.4120, query: "Jungmun Saekdal Beach, Seogwipo, Jeju-do, South Korea" }
+                ]
+            },
+            2: {
+                title: "Day 2：Zen Hideaway ➔ 城山日出峰 ➔ 月汀里獨木舟 ➔ Shilla Stay",
+                date: "Day 2 · 東部海岸線與黑豬肉",
+                locations: [
+                    { id: '2-1', time: "08:00", title: "由 Zen Hideaway 退房出發", desc: "在西南海岸民宿享用完早餐後退房出發，沿逆時針方向東行橫越南部公路。", tag: "民宿出發", parking: "🅿️ 民宿免費停車", nextDrive: "🚗 駕駛約 1 小時 10 分鐘 (西南往東部城山約 58km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
+                    { id: '2-2', time: "09:30", title: "城山日出峰 (壯麗登高)", desc: "登頂世界自然遺產火山口，享受無敵海景與壯闊火山地形。", tag: "世界遺產", parking: "🅿️ 免費大型停車場", nextDrive: "🚗 駕駛約 20 分鐘 (城山往舊左明珍鮑魚約 16km)", lat: 33.4587, lng: 126.9425, query: "Seongsan Ilchulbong, Jeju-do, South Korea" },
+                    { id: '2-3', time: "11:30", title: "⑤ 명진전복 (明珍鮑魚)", desc: "【舊左名店】必食招牌鮑魚石鍋飯與新鮮鮑魚粥，鮮甜濃郁。", tag: "10大名店⑤", parking: "🅿️ 餐廳專用停車位", nextDrive: "🚗 駕駛約 15 分鐘 (舊左往月汀里約 10km)", lat: 33.5315, lng: 126.8375, query: "Myeongjin Jeonbok, Gujwa-eup, Jeju-do, South Korea" },
+                    { id: '2-4', time: "13:00", title: "月汀里海灘 (투명카약 透明獨木舟)", desc: "【水上活動】喺月汀里清澈果凍海體驗浪漫透明獨木舟，打卡超靚。", tag: "水上活動", parking: "🅿️ 月汀里公用停車場", nextDrive: "🚗 駕駛約 2 分鐘 (旁邊 Cafe 街)", lat: 33.5552, lng: 126.7721, query: "Woljeongri Beach, Jeju-do, South Korea" },
+                    { id: '2-5', time: "14:30", title: "月汀里海邊 Cafe 嘆下午茶", desc: "玩完獨木舟後，喺月汀里白色風車海岸 Cafe 坐低嘆咖啡影靚相。", tag: "海景 Cafe", parking: "🅿️ Cafe 專屬停車位", nextDrive: "🚗 駕駛約 45 分鐘 (月汀里往新濟州約 30km)", lat: 33.5540, lng: 126.7730, query: "Woljeongri Cafe Street, Jeju-do, South Korea" },
+                    { id: '2-6', time: "17:00", title: "Shilla Stay (Check-in)", desc: "由東部海岸返抵新濟州市區，順利登記入住 Shilla Stay 并安頓行李。", tag: "酒店抵達", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (酒店往黑豬肉餐廳約 2km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '2-7', time: "18:30", title: "③ 돈사돈 (Donsadon 黑豬肉)", desc: "【濟州市區名店】濟州黑豬肉權威！厚切黑豬肉肉汁爆棚，專人炭火代烤。", tag: "10大名店③", parking: "🅿️ 餐廳專用免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (返回酒店約 2km)", lat: 33.4889, lng: 126.4862, query: "Donsadon, Jeju-do, South Korea" },
+                    { id: '2-8', time: "20:30", title: "返回 Shilla Stay 休息", desc: "返回新濟州酒店休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
+                ],
+                backups: [
+                    { id: 'b-2-1', title: "萬丈窟", desc: "世界最大級火山熔岩洞穴，夏日避暑勝地。", lat: 33.5283, lng: 126.7715, query: "Manjanggul Cave, Jeju-do, South Korea" },
+                    { id: 'b-2-2', title: "廣峙其海灘", desc: "遠眺城山日出峰側面絕壁的秘境拍攝點。", lat: 33.4510, lng: 126.9240, query: "Gwangchigi Beach, Jeju-do, South Korea" }
+                ]
+            },
+            3: {
+                title: "Day 3：London Bagel ➔ 咸德海女包飯 ➔ 免稅店 ➔ 七星街 ➔ 樂天超市",
+                date: "Day 3 · 全日購物血拼與美食專日",
+                locations: [
+                    { id: '3-1', time: "09:00", title: "由 Shilla Stay 出發", desc: "在新濟州酒店食過豐富早餐後出發，展開全日購物血拼與人氣美食之旅！", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (新濟州往東福里約 22km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '3-2', time: "09:45", title: "🥯 London Bagel Museum (濟州店)", desc: "【韓國爆紅名店】在東福里海岸品嚐人氣爆棚的現烤貝果與各式香濃 Cream Cheese！", tag: "人氣爆紅", parking: "🅿️ 專屬免費停車場 (東福里1352)", nextDrive: "🚗 駕駛約 12 分鐘 (東福里往咸德約 8km)", lat: 33.5536, lng: 126.7156, query: "London Bagel Museum Jeju, Gujwa-eup, Jeju-do, South Korea" },
+                    { id: '3-3', time: "11:00", title: "咸德海女包飯 (咸德海灘美食)", desc: "【咸德人氣名店】喺咸德清澈海邊品嚐用料新鮮、鮑魚海鮮風味十足嘅海女紫菜包飯！", tag: "咸德名物", parking: "🅿️ 咸德公共大停車場", nextDrive: "🚗 駕駛約 35 分鐘 (咸德往新濟州免稅店約 20km)", lat: 33.5430, lng: 126.6690, query: "Hamdeok Haenyeo Gimbap, Jeju-do, South Korea" },
+                    { id: '3-4', time: "13:00", title: "新濟州蓮洞商圈 & 新羅免稅店", desc: "【血拼重頭戲】濟州最繁華商圈！狂掃韓國人氣美妝、流行服飾及新羅免稅店名牌。", tag: "美妝名牌血拼", parking: "🅿️ 免稅店專屬停車場", nextDrive: "🚗 駕駛約 15 分鐘 (蓮洞往七星街約 6km)", lat: 33.4882, lng: 126.4912, query: "Shilla Duty Free Jeju, Jeju-do, South Korea" },
+                    { id: '3-5', time: "15:30", title: "七星街 (칠성로) & 中央路 (중앙로) 行街", desc: "【市區潮流血拼】濟州最著名嘅步行商業街！盡情行街買潮流鞋服、文創特色小店。", tag: "潮流街行街", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 15 分鐘 (七星街往樂天超市約 6km)", lat: 33.5126, lng: 126.5268, query: "Chilsungro Shopping Street, Jeju-do, South Korea" },
+                    { id: '3-6', time: "18:00", title: "Lotte Mart 濟州店 (大型量販)", desc: "【超市大掃貨】大型韓國樂天超市！一次過瘋狂掃入人氣零食、即食麵、韓式醬料及伴手禮。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (樂天超市往三姓穴約 4km)", lat: 33.4885, lng: 126.4940, query: "Lotte Mart Jeju, Jeju-do, South Korea" },
+                    { id: '3-7', time: "19:30", title: "三姓穴海鮮湯 (晚餐)", desc: "【豐富海鮮鍋】滿滿新鮮活鮑魚、八爪魚與多種海鮮堆疊而成嘅鮮甜海鮮鍋，大飽口福！", tag: "必食晚餐", parking: "🅿️ 餐廳後方專用車位", nextDrive: "🚗 駕駛約 10 分鐘 (返回酒店約 4km)", lat: 33.5042, lng: 126.5273, query: "Samseonghyeol Haemultang, Jeju-do, South Korea" },
+                    { id: '3-8', time: "21:00", title: "返回 Shilla Stay 休息", desc: "滿載而歸，提著大包小包戰利品返回酒店整理休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
+                ],
+                backups: [
+                    { id: 'b-3-1', title: "涯月海邊散步路", desc: "充滿文青氣息的海岸咖啡街。", lat: 33.4630, lng: 126.3120, query: "Aewol Coastal Road, Jeju-do, South Korea" },
+                    { id: 'b-3-2', title: "Nuemaru 步行街", desc: "新濟州夜晚熱鬧散步逛街好去處。", lat: 33.4860, lng: 126.4890, query: "Nuemaru Street, Jeju-do, South Korea" }
+                ]
+            },
+            4: {
+                title: "Day 4：挾才海灘 ➔ Umu 布丁 ➔ 市區名店 ➔ 醬油蟹 ➔ 機場返港",
+                date: "Day 4 · 航班 LJ713",
+                locations: [
+                    { id: '4-1', time: "09:00", title: "由 Shilla Stay 出發 (退房)", desc: "帶齊行李退房，驅車前往西部美麗嘅挾才海岸。", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (新濟州往挾才約 20km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '4-2', time: "10:00", title: "挾才海水浴場 & Umu 手工布丁", desc: "欣賞晨早絕美漸層玻璃海，並打卡韓國 IG 爆紅的海草手工布丁。", tag: "果凍海灘", parking: "🅿️ 海灘免費公共停車場", nextDrive: "🚗 駕駛約 35 分鐘 (挾才往市區牛肉湯約 22km)", lat: 33.3941, lng: 126.2392, query: "Hyeopjae Beach, Jeju-do, South Korea" },
+                    { id: '4-3', time: "11:30", title: "① 우진해장국 (Ujin Haejangguk)", desc: "【濟州市區名店】必食招牌超濃郁蔬菜牛肉湯，排隊人潮極多但極高質！", tag: "10大名店①", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 10 分鐘 (牛肉湯往金萬福約 4km)", lat: 33.5142, lng: 126.5175, query: "Ujin Haejangguk, Jeju-do, South Korea" },
+                    { id: '4-4', time: "13:00", title: "④ 제주김만복 本店 (金萬福)", desc: "【機場附近名店】招牌鮑魚蛋卷菜包飯，麻油香氣十足，買來當輕食點心。", tag: "10大名店④", parking: "🅿️ 餐廳門口免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (金萬福往龍潭海岸約 4km)", lat: 33.4971, lng: 126.5085, query: "Jeju Gimmanbok Main Store, Jeju-do, South Korea" },
+                    { id: '4-5', time: "14:30", title: "龍潭海岸 Café 嘆海景下午茶", desc: "在機場附近的海岸咖啡廳欣賞最後的海景，喝杯咖啡回味旅程。", tag: "海景咖啡", parking: "🅿️ 咖啡廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (海岸Cafe往晚餐約 3km)", lat: 33.5189, lng: 126.5021, query: "Yongdam Coastal Road, Jeju-do, South Korea" },
+                    { id: '4-6', time: "16:30", title: "本家醬油蟹 (完美晚餐)", desc: "【旅程最後一餐】享用鮮美無腥味的著名醬油蟹，配上一口香濃蟹膏飯，完美收官！", tag: "必食晚餐", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (晚餐往機場約 3km)", lat: 33.4891, lng: 126.4983, query: "Jeju Ganjang Gejang, Jeju-do, South Korea" },
+                    { id: '4-7', time: "18:00", title: "濟州國際機場 (還車與登機)", desc: "順利歸還車輛，前往濟州機場辦理 21:30 起飛之 LJ713 航班登機手續。", tag: "機場還車", parking: "🅿️ 租車公司還車區", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
+                    { id: '4-8', time: "21:30", title: "搭乘航班 LJ713 返港", desc: "乘搭 21:30 濟州起飛航班，於 23:35 安全返抵香港 T1，結束甜蜜自駕假期！", tag: "航班返港", parking: "✈️ 準時起飛返回香港", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" }
+                ],
+                backups: [
+                    { id: 'b-4-1', title: "龍頭岩", desc: "機場附近的標誌性龍頭狀火山岩打卡點。", lat: 33.5161, lng: 126.5111, query: "Yongduam Rock, Jeju-do, South Korea" },
+                    { id: 'b-4-2', title: "Dahlia 飾品店", desc: "新濟州文青手作飾品選物店。", lat: 33.4870, lng: 126.4880, query: "Shinjeju, Jeju-do, South Korea" }
+                ]
+            }
+        };
+
+        function checkPassword(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('pw-input').value.trim().toLowerCase();
+            const errorMsg = document.getElementById('error-msg');
+            const authScreen = document.getElementById('auth-screen');
+
+            if (inputVal === 'ltwy') {
+                authScreen.classList.add('hidden');
+                initMap();
+                loadAllDays();
+                buildInfoPageText();
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('pw-input').value = '';
+                document.getElementById('pw-input').focus();
+            }
+        }
+
+        function initMap() {
+            if (map) return;
+
+            map = L.map('interactive-map', {
+                zoomControl: true
+            }).setView([33.38, 126.55], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            markersLayer = L.featureGroup().addTo(map);
+        }
+
+        function updateTabButtons(activeTab) {
+            [1, 2, 3, 4, 'all'].forEach(d => {
+                const btn = document.getElementById(`btn-tab-${d}`);
+                if (btn) {
+                    if (d === activeTab) {
+                        btn.className = "py-2 text-xs font-bold rounded-lg bg-rose-600 text-white shadow-xs transition text-center";
+                    } else {
+                        btn.className = "py-2 text-xs font-bold rounded-lg bg-stone-100 text-stone-700 active:bg-stone-200 transition text-center";
+                    }
+                }
+            });
+
+            const btnTodo = document.getElementById('btn-tab-todo');
+            if (btnTodo) {
+                if (activeTab === 'todo') {
+                    btnTodo.className = "h-8 px-2.5 text-xs font-bold rounded-lg bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-500 transition flex items-center justify-center shrink-0";
+                    btnTodo.innerHTML = '<i class="fa-solid fa-list-check text-white mr-1 text-xs"></i>Checklist';
+                } else {
+                    btnTodo.className = "h-8 px-2.5 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 active:bg-emerald-100 transition flex items-center justify-center shrink-0 shadow-2xs";
+                    btnTodo.innerHTML = '<i class="fa-solid fa-list-check text-emerald-600 mr-1 text-xs"></i>Checklist';
+                }
+            }
+
+            const btnInfo = document.getElementById('btn-tab-info');
+            if (btnInfo) {
+                if (activeTab === 'info') {
+                    btnInfo.className = "h-8 px-2.5 text-xs font-bold rounded-lg bg-rose-600 text-white shadow-sm ring-1 ring-rose-500 transition flex items-center justify-center shrink-0";
+                    btnInfo.innerHTML = '<i class="fa-solid fa-book-open text-white mr-1 text-xs"></i>手冊';
+                } else {
+                    btnInfo.className = "h-8 px-2.5 text-xs font-bold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 active:bg-rose-100 transition flex items-center justify-center shrink-0 shadow-2xs";
+                    btnInfo.innerHTML = '<i class="fa-solid fa-book-open text-rose-600 mr-1 text-xs"></i>手冊';
+                }
+            }
+        }
+
+        function switchTab(tab) {
+            updateTabButtons(tab);
+
+            const mainGrid = document.getElementById('main-grid');
+            const infoPage = document.getElementById('info-page');
+            const todoPage = document.getElementById('todo-page');
+
+            mainGrid.classList.add('hidden');
+            infoPage.classList.add('hidden');
+            todoPage.classList.add('hidden');
+
+            if (tab === 'info') {
+                infoPage.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (tab === 'todo') {
+                todoPage.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                mainGrid.classList.remove('hidden');
+                if (map) {
+                    setTimeout(() => { map.invalidateSize(); }, 200);
+                }
+                if (tab === 'all') {
+                    loadAllDays();
+                } else {
+                    loadDay(tab);
+                }
+            }
+        }
+
+        function focusSpotOnMap(targetId, lat, lng) {
+            if (!map) return;
+            const offsetLat = lat + 0.0045;
+            map.flyTo([offsetLat, lng], 15, { duration: 0.5 });
+            
+            if (currentFocusedMarker && currentFocusedMarker.setZIndexOffset) {
+                currentFocusedMarker.setZIndexOffset(0);
+            }
+
+            let matchedMarker = null;
+            markersLayer.eachLayer(layer => {
+                if (layer.locId === targetId) {
+                    matchedMarker = layer;
+                }
+            });
+
+            if (matchedMarker) {
+                matchedMarker.setZIndexOffset(1000);
+                currentFocusedMarker = matchedMarker;
+                setTimeout(() => {
+                    matchedMarker.openPopup();
+                }, 300);
+            }
+
+            const mapSection = document.getElementById('map-section');
+            const header = document.getElementById('main-header');
+            if (mapSection) {
+                const headerHeight = header ? header.offsetHeight : 60;
+                const elementTop = mapSection.getBoundingClientRect().top + window.pageYOffset;
+                window.scrollTo({
+                    top: elementTop - headerHeight - 6,
+                    behavior: 'smooth'
+                });
+
+                mapSection.classList.add('map-focus-pulse');
+                setTimeout(() => {
+                    mapSection.classList.remove('map-focus-pulse');
+                }, 800);
+            }
+        }
+
+        function loadDay(day) {
+            const data = itineraryData[day];
+            document.getElementById('timeline-title').innerText = data.title;
+            document.getElementById('timeline-date').innerText = data.date;
+            document.getElementById('map-status').innerText = `Day ${day} 地點導覽`;
+
+            markersLayer.clearLayers();
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            data.locations.forEach((loc, index) => {
+                const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物");
+                const tagClass = isFood ? "bg-amber-100 text-amber-800 border-amber-200 font-bold" : "bg-white border-stone-200 text-stone-600";
+                
+                const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
+                const driveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}&travelmode=driving`;
+                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(targetQuery)}`;
+
+                const customIcon = L.divIcon({
+                    className: '',
+                    html: `<div class="custom-pin w-7 h-7 text-xs ${dayColors[day].bg}">${index + 1}</div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    popupAnchor: [0, -14]
+                });
+
+                const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
+                marker.locId = loc.id;
+                
+                marker.bindPopup(`
+                    <div class="space-y-1.5 text-xs">
+                        <div class="flex items-center justify-between gap-1 border-b border-stone-100 pb-1">
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold text-white ${dayColors[day].bg}">Day ${day} · ${index + 1}</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold truncate"><i class="fa-solid fa-square-parking mr-0.5"></i>${loc.parking.replace('🅿️ ', '')}</span>
+                        </div>
+                        <h4 class="font-bold text-stone-900 text-xs leading-snug">${loc.title}</h4>
+                        <div class="grid grid-cols-2 gap-1.5 pt-1">
+                            <a href="${searchUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1 border border-stone-200 transition">
+                                <i class="fa-brands fa-google text-stone-600 text-[10px]"></i> Google
+                            </a>
+                            <a href="${driveUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1 shadow-xs transition">
+                                <i class="fa-solid fa-diamond-turn-right text-white text-[10px]"></i> <span class="text-white">Drive</span>
+                            </a>
+                        </div>
+                    </div>
+                `, { maxWidth: 220, minWidth: 190, autoPan: true, autoPanPaddingTopLeft: L.point(15, 60), autoPanPaddingBottomRight: L.point(15, 15) });
+
+                markersLayer.addLayer(marker);
+
+                const card = document.createElement('div');
+                card.id = `card-${loc.id}`;
+                card.className = `p-3.5 rounded-xl border ${isFood ? 'border-amber-200 bg-amber-50/40' : 'border-stone-200 bg-stone-50'} active:bg-white transition cursor-pointer hover:border-rose-300`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full ${isFood ? 'bg-amber-500' : 'bg-rose-500'} text-white text-xs font-bold flex items-center justify-center shadow-xs">${index + 1}</span>
+                            <h3 class="font-bold text-stone-900 text-sm">${loc.title}</h3>
+                        </div>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded border ${tagClass}">${loc.tag}</span>
+                    </div>
+                    <p class="text-xs text-stone-700 pl-8 font-semibold text-rose-800">${loc.time}</p>
+                    <p class="text-xs text-stone-700 pl-8 mt-1 leading-relaxed">${loc.desc}</p>
+                    <div class="mt-2.5 pl-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <span class="text-xs text-emerald-700 font-medium"><i class="fa-solid fa-square-parking mr-1"></i>${loc.parking}</span>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <a href="${searchUrl}" target="_blank" onclick="event.stopPropagation();" class="flex-1 sm:flex-none text-xs bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-3 py-2 rounded-lg text-center transition flex items-center justify-center gap-1 shadow-2xs">
+                                <i class="fa-brands fa-google"></i> Google
+                            </a>
+                            <a href="${driveUrl}" target="_blank" onclick="event.stopPropagation();" class="flex-1 sm:flex-none text-xs bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold px-3 py-2 rounded-lg text-center transition flex items-center justify-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-diamond-turn-right text-white"></i> <span class="text-white">Drive</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => { focusSpotOnMap(loc.id, loc.lat, loc.lng); };
+                container.appendChild(card);
+
+                if (loc.nextDrive) {
+                    const driveDiv = document.createElement('div');
+                    driveDiv.className = "flex items-center gap-1.5 pl-4 text-xs text-stone-500 font-medium my-2";
+                    driveDiv.innerHTML = `<i class="fa-solid fa-arrow-down text-rose-500"></i><span>${loc.nextDrive}</span>`;
+                    container.appendChild(driveDiv);
+                }
+            });
+
+            if (data.backups && data.backups.length > 0) {
+                const backupBox = document.createElement('div');
+                backupBox.className = "mt-4 p-3.5 rounded-xl border border-dashed border-stone-300 bg-stone-100 text-xs";
+                backupBox.innerHTML = `<h4 class="font-bold text-stone-800 mb-2.5"><i class="fa-solid fa-circle-question text-stone-500 mr-1"></i> 當日彈性後備景點</h4>`;
+                
+                const ul = document.createElement('ul');
+                ul.className = "space-y-2.5 text-stone-800";
+
+                data.backups.forEach((b) => {
+                    const targetBackupQuery = b.query || (b.title + ', Jeju, South Korea');
+                    const bSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(targetBackupQuery)}`;
+                    const bDriveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetBackupQuery)}&travelmode=driving`;
+                    
+                    const backupPin = L.divIcon({
+                        className: '',
+                        html: `<div class="custom-pin w-6 h-6 text-[10px] bg-stone-600">?</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        popupAnchor: [0, -12]
+                    });
+                    const bMarker = L.marker([b.lat, b.lng], { icon: backupPin });
+                    bMarker.locId = b.id;
+                    bMarker.bindPopup(`
+                        <div class="space-y-1.5 text-xs">
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold text-white bg-stone-600">後備景點</span>
+                            <h4 class="font-bold text-stone-900 text-xs leading-snug">${b.title}</h4>
+                            <p class="text-stone-600 text-[11px] mb-1">${b.desc}</p>
+                            <div class="grid grid-cols-2 gap-1.5 pt-1">
+                                <a href="${bSearchUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1 border border-stone-200 transition">
+                                    <i class="fa-brands fa-google text-stone-600 text-[10px]"></i> Google
+                                </a>
+                                <a href="${bDriveUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-blue-600 text-white font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-diamond-turn-right text-white text-[10px]"></i> <span class="text-white">Drive</span>
+                                </a>
+                            </div>
+                        </div>
+                    `, { maxWidth: 220, minWidth: 190, autoPan: true });
+                    markersLayer.addLayer(bMarker);
+
+                    const li = document.createElement('li');
+                    li.className = "p-3 rounded-lg bg-white border border-stone-200 active:bg-stone-50 transition flex flex-col gap-2 cursor-pointer hover:border-rose-300";
+                    li.innerHTML = `
+                        <div>
+                            <strong class="text-xs">• ${b.title}</strong>: ${b.desc} 
+                            <span class="text-[10px] text-stone-500 font-bold block mt-1">🔍 點擊自動跳到地圖查看</span>
+                        </div>
+                        <div class="flex justify-end gap-1.5">
+                            <a href="${bSearchUrl}" target="_blank" onclick="event.stopPropagation();" class="text-xs bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-3 py-1.5 rounded-lg text-center flex items-center justify-center gap-1">
+                                <i class="fa-brands fa-google"></i> Google
+                            </a>
+                            <a href="${bDriveUrl}" target="_blank" onclick="event.stopPropagation();" class="text-xs bg-blue-600 text-white font-bold px-3 py-1.5 rounded-lg text-center flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-diamond-turn-right"></i> Drive
+                            </a>
+                        </div>
+                    `;
+                    li.onclick = () => { focusSpotOnMap(b.id, b.lat, b.lng); };
+                    ul.appendChild(li);
+                });
+                backupBox.appendChild(ul);
+                container.appendChild(backupBox);
+            }
+
+            if (markersLayer.getLayers().length > 0) {
+                map.fitBounds(markersLayer.getBounds(), { padding: [40, 40], maxZoom: 13 });
+            }
+        }
+
+        function loadAllDays() {
+            document.getElementById('timeline-title').innerText = "全濟州 4 日行程總覽 (含所有後備方案)";
+            document.getElementById('timeline-date').innerText = "全部行程 + 後備";
+            document.getElementById('map-status').innerText = "全濟州總覽 (所有地點)";
+
+            markersLayer.clearLayers();
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            for (let d = 1; d <= 4; d++) {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = "font-bold text-xs text-stone-800 uppercase tracking-wider pt-3.5 pb-1.5 border-b border-stone-200 flex items-center gap-2 mt-2";
+                dayHeader.innerHTML = `<span class="w-3 h-3 rounded-full ${dayColors[d].bg}"></span> ${itineraryData[d].title}`;
+                container.appendChild(dayHeader);
+
+                itineraryData[d].locations.forEach((loc, index) => {
+                    const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
+                    const driveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}&travelmode=driving`;
+                    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(targetQuery)}`;
+
+                    const customIcon = L.divIcon({
+                        className: '',
+                        html: `<div class="custom-pin w-6 h-6 text-[10px] ${dayColors[d].bg}">D${d}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12],
+                        popupAnchor: [0, -12]
+                    });
+
+                    const marker = L.marker([loc.lat, loc.lng], { icon: customIcon });
+                    marker.locId = loc.id;
+                    
+                    marker.bindPopup(`
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex items-center justify-between gap-1 border-b border-stone-100 pb-1">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold text-white ${dayColors[d].bg}">Day ${d} · ${index + 1}</span>
+                                <span class="text-[10px] text-emerald-700 font-semibold truncate"><i class="fa-solid fa-square-parking mr-0.5"></i>${loc.parking.replace('🅿️ ', '')}</span>
+                            </div>
+                            <h4 class="font-bold text-stone-900 text-xs leading-snug">${loc.title}</h4>
+                            <div class="grid grid-cols-2 gap-1.5 pt-1">
+                                <a href="${searchUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1 border border-stone-200 transition">
+                                    <i class="fa-brands fa-google text-stone-600 text-[10px]"></i> Google
+                                </a>
+                                <a href="${driveUrl}" target="_blank" onclick="event.stopPropagation();" class="text-[11px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded-lg text-center flex items-center justify-center gap-1 shadow-xs transition">
+                                    <i class="fa-solid fa-diamond-turn-right text-white text-[10px]"></i> <span class="text-white">Drive</span>
+                                </a>
+                            </div>
+                        </div>
+                    `, { maxWidth: 220, minWidth: 190, autoPan: true, autoPanPaddingTopLeft: L.point(15, 60), autoPanPaddingBottomRight: L.point(15, 15) });
+
+                    markersLayer.addLayer(marker);
+
+                    const card = document.createElement('div');
+                    card.id = `card-all-${loc.id}`;
+                    card.className = "p-3 rounded-lg border border-stone-200 bg-stone-50 active:bg-white transition flex justify-between items-center cursor-pointer gap-2 hover:border-rose-300";
+                    card.innerHTML = `
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] px-2 py-0.5 rounded font-bold text-white ${dayColors[d].bg}">D${d}-${index + 1}</span>
+                                <span class="text-xs font-semibold text-stone-600">${loc.time}</span>
+                            </div>
+                            <h3 class="font-bold text-stone-900 text-xs">${loc.title}</h3>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <a href="${searchUrl}" target="_blank" onclick="event.stopPropagation();" class="text-xs bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                <i class="fa-brands fa-google"></i> Google
+                            </a>
+                            <a href="${driveUrl}" target="_blank" onclick="event.stopPropagation();" class="text-xs bg-blue-600 text-white font-bold px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                <i class="fa-solid fa-diamond-turn-right"></i> Drive
+                            </a>
+                        </div>
+                    `;
+                    card.onclick = () => { focusSpotOnMap(loc.id, loc.lat, loc.lng); };
+                    container.appendChild(card);
+                });
+            }
+
+            if (markersLayer.getLayers().length > 0) {
+                map.fitBounds(markersLayer.getBounds(), { padding: [30, 30] });
+            }
+        }
+
+        function buildInfoPageText() {
+            const container = document.getElementById('info-text-container');
+            let html = '';
+            const dayTextColors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-emerald-600', 4: 'text-indigo-600' };
+            for (let d = 1; d <= 4; d++) {
+                const data = itineraryData[d];
+                html += `<div class="bg-stone-50 p-3.5 rounded-lg border border-stone-200 space-y-2.5"><h4 class="font-bold text-xs ${dayTextColors[d]}">${data.title} (${data.date})</h4><div class="space-y-2.5 border-l-2 border-stone-200 pl-3">`;
+                data.locations.forEach((loc, idx) => {
+                    const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物");
+                    const titleColor = isFood ? "text-amber-800 font-extrabold" : "text-stone-900";
+                    const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
+                    const driveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}&travelmode=driving`;
+                    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(targetQuery)}`;
+
+                    html += `
+                        <div class="flex justify-between items-start gap-2.5 pb-2.5 border-b border-stone-200/60 last:border-0 last:pb-0">
+                            <div>
+                                <p class="${titleColor} text-xs font-bold">${idx + 1}. [${loc.time}] ${loc.title}</p>
+                                <p class="text-stone-700 text-xs mt-1">${loc.desc}</p>
+                                <p class="text-emerald-700 text-xs mt-1 font-medium">停車：${loc.parking}</p>
+                            </div>
+                            <div class="flex flex-col gap-1.5 shrink-0">
+                                <a href="${searchUrl}" target="_blank" class="text-xs bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold px-2.5 py-1.5 rounded text-center flex items-center justify-center gap-1">
+                                    <i class="fa-brands fa-google"></i> Google
+                                </a>
+                                <a href="${driveUrl}" target="_blank" class="text-xs bg-blue-600 text-white font-bold px-2.5 py-1.5 rounded text-center flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-diamond-turn-right text-white"></i> <span class="text-white">Drive</span>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // ================= Currency 兌換器與 4x4 NumPad 邏輯 =================
+        let activeCurrency = 'krw';
+
+        function openCurrencyModal() {
+            const modal = document.getElementById('currency-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            const krwInput = document.getElementById('input-krw');
+            if (!krwInput.value || krwInput.value === '0') {
+                krwInput.value = '10000';
+                onKrwInput();
+            }
+        }
+
+        function closeCurrencyModal() {
+            const modal = document.getElementById('currency-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function setActiveInput(curr) {
+            activeCurrency = curr;
+            const boxKrw = document.getElementById('box-krw');
+            const boxHkd = document.getElementById('box-hkd');
+            const tagKrw = document.getElementById('tag-krw');
+            const tagHkd = document.getElementById('tag-hkd');
+
+            if (curr === 'krw') {
+                boxKrw.className = "bg-amber-50/70 p-3 rounded-xl border-2 border-amber-400 cursor-pointer transition";
+                tagKrw.className = "text-[10px] text-amber-700 font-bold bg-amber-200/60 px-1.5 py-0.5 rounded";
+                tagKrw.innerText = "輸入中";
+
+                boxHkd.className = "bg-stone-50 p-3 rounded-xl border border-stone-200 cursor-pointer transition";
+                tagHkd.className = "text-[10px] text-stone-500 font-semibold hidden";
+            } else {
+                boxHkd.className = "bg-blue-50/70 p-3 rounded-xl border-2 border-blue-500 cursor-pointer transition";
+                tagHkd.className = "text-[10px] text-blue-700 font-bold bg-blue-200/60 px-1.5 py-0.5 rounded";
+                tagHkd.innerText = "輸入中";
+                tagHkd.classList.remove('hidden');
+
+                boxKrw.className = "bg-stone-50 p-3 rounded-xl border border-stone-200 cursor-pointer transition";
+                tagKrw.className = "text-[10px] text-stone-500 font-semibold hidden";
+            }
+        }
+
+        function getRate() {
+            const rateVal = parseFloat(document.getElementById('currency-rate').value);
+            return (rateVal && rateVal > 0) ? rateVal : 175;
+        }
+
+        function onKrwInput() {
+            const krw = parseFloat(document.getElementById('input-krw').value);
+            const rate = getRate();
+            const hkdInput = document.getElementById('input-hkd');
+            if (isNaN(krw) || krw <= 0) {
+                hkdInput.value = '0';
+                return;
+            }
+            hkdInput.value = (krw / rate).toFixed(1);
+        }
+
+        function onHkdInput() {
+            const hkd = parseFloat(document.getElementById('input-hkd').value);
+            const rate = getRate();
+            const krwInput = document.getElementById('input-krw');
+            if (isNaN(hkd) || hkd <= 0) {
+                krwInput.value = '0';
+                return;
+            }
+            krwInput.value = Math.round(hkd * rate);
+        }
+
+        function onRateChange() {
+            if (activeCurrency === 'krw') {
+                onKrwInput();
+            } else {
+                onHkdInput();
+            }
+        }
+
+        function numpadPress(val) {
+            const targetInput = document.getElementById(activeCurrency === 'krw' ? 'input-krw' : 'input-hkd');
+            let currentVal = targetInput.value;
+
+            if (currentVal === '0' || currentVal === '') {
+                currentVal = '';
+            }
+
+            if (val === 'C') {
+                targetInput.value = '0';
+            } else if (val === 'DEL') {
+                currentVal = currentVal.slice(0, -1);
+                targetInput.value = currentVal === '' ? '0' : currentVal;
+            } else if (val === '.') {
+                if (!currentVal.includes('.')) {
+                    targetInput.value = currentVal === '' ? '0.' : currentVal + '.';
+                }
+            } else {
+                targetInput.value = currentVal + val;
+            }
+
+            if (activeCurrency === 'krw') {
+                onKrwInput();
+            } else {
+                onHkdInput();
+            }
+        }
+
+        async function fetchLiveRate() {
+            const btn = document.getElementById('btn-fetch-rate');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[10px]"></i><span>連線中</span>`;
+            try {
+                const res = await fetch('https://open.er-api.com/v6/latest/HKD');
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                if (data && data.rates && data.rates.KRW) {
+                    const krwRate = parseFloat(data.rates.KRW).toFixed(1);
+                    document.getElementById('currency-rate').value = krwRate;
+                    onRateChange();
+                    btn.innerHTML = `<i class="fa-solid fa-check text-[10px] text-emerald-600"></i><span>完成</span>`;
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[10px] text-amber-600"></i><span>離線</span>`;
+            }
+            setTimeout(() => { btn.innerHTML = originalHtml; }, 1800);
+        }
+
+        document.getElementById('currency-modal').addEventListener('click', function(e) {
+            if (e.target === this) { closeCurrencyModal(); }
+        });
+    </script>
 </body>
 </html>
