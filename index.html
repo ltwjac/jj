@@ -106,10 +106,10 @@
                 </div>
             </div>
 
-            <!-- 行程搜尋欄 (新增搜尋功能) -->
+            <!-- 行程搜尋欄 -->
             <div class="relative w-full">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-stone-400 text-xs"></i>
-                <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋景點、美食或 Day 幾（例如：醬蟹 / London Bagel）..."
+                <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋景點、美食或 Day 幾（例如：熟成到 / 醬蟹 / London Bagel）..."
                     class="w-full pl-8 pr-8 py-1.5 bg-stone-100 border border-stone-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition">
                 <button id="search-clear-btn" onclick="clearSearch()" class="hidden absolute right-2.5 top-2 text-stone-400 hover:text-stone-600 text-xs p-0.5">
                     <i class="fa-solid fa-circle-xmark"></i>
@@ -150,7 +150,7 @@
                 <h2 id="timeline-title" class="font-bold text-stone-900 text-xs">全濟州 4 日行程總覽 (含所有後備方案)</h2>
                 <span id="timeline-date" class="text-xs px-2.5 py-0.5 bg-rose-50 text-rose-600 rounded-full font-medium">全部行程 + 後備</span>
             </div>
-            <div id="timeline-container" class="p-3 space-y-3 overflow-y-auto"></div>
+            <div id="timeline-container" class="p-3 space-y-3 overflow-y-auto max-h-[60vh]"></div>
         </div>
     </main>
 
@@ -195,7 +195,7 @@
                     <h2 class="text-sm font-extrabold text-stone-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-cloud text-emerald-600"></i> 二人同行實時雲端 Checklist
                     </h2>
-                    <p class="text-[11px] text-stone-500 mt-0.5">你與太太可隨時同步新增及勾選行李清單</p>
+                    <p class="text-[11px] text-stone-500 mt-0.5">預約事項與行李清單（已預設事前 Booking 項目）</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <span id="sync-status" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">已連線</span>
@@ -223,7 +223,7 @@
 
     <!-- Currency 兌換器彈出視窗 (Modal) -->
     <div id="currency-modal" class="fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4">
-        <div class="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-sm overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-white rounded-2xl shadow-2xl border border-stone-200 w-full max-w-sm overflow-hidden flex flex-col">
             <!-- Modal 頂部標題 -->
             <div class="bg-amber-500 text-white px-4 py-3 flex justify-between items-center shadow-xs">
                 <div class="flex items-center gap-2">
@@ -299,7 +299,7 @@
                     </div>
                 </div>
 
-                <!-- 完美對齊的 4x4 NumPad 數字鍵盤 -->
+                <!-- 4x4 NumPad 數字鍵盤 -->
                 <div class="grid grid-cols-4 gap-1.5 pt-1 bg-stone-100 p-2 rounded-xl border border-stone-200">
                     <button type="button" onclick="numpadPress('1')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">1</button>
                     <button type="button" onclick="numpadPress('2')" class="py-3 bg-white hover:bg-stone-50 active:bg-stone-200 font-bold text-stone-800 rounded-lg shadow-2xs border border-stone-200 text-sm">2</button>
@@ -354,6 +354,18 @@
         let useLocalFallback = false;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'jeju-couple-trip-2026';
 
+        // 預設需要 사전做 Booking 與準備的事項清單
+        const defaultBookingItems = [
+            "📌 下載韓國 CatchTable App (國際版) 並註冊帳號",
+            "🥯 Day 2: 線上 CatchTable 預約 London Bagel Museum 抽號碼牌",
+            "🥩 Day 2 & Day 3: CatchTable 預約/現場登記『熟成到 (Sukseongdo)』黑毛豬",
+            "🐟 Day 1: 預約 고집돌우럭 (鰲魚套餐) / 冠軍醬蟹",
+            "🚗 申請香港國際駕駛執照 (IDP) 並帶備香港駕照正本",
+            "📲 下載並熟悉 Naver Map / KakaoMap (韓國自駕地圖)",
+            "📋 填寫 K-ETA 或韓國入境 Q-Code 健康申報",
+            "💳 開通信用卡海外簽帳 & 預備韓圜現金 (KRW)"
+        ];
+
         try {
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
@@ -381,12 +393,15 @@
         function initFirestoreListener() {
             if (useLocalFallback || !db) return;
             const todosRef = collection(db, 'artifacts', appId, 'public', 'data', 'travel_todos');
-            onSnapshot(todosRef, (snapshot) => {
+            onSnapshot(todosRef, async (snapshot) => {
                 const listContainer = document.getElementById('todo-list-container');
                 listContainer.innerHTML = '';
                 
                 if (snapshot.empty) {
-                    listContainer.innerHTML = `<div class="text-center py-6 text-stone-400 text-xs">目前清單係空的，快啲新增第一項行李啦！</div>`;
+                    // 若雲端資料庫為空，自動填充預設預約 Checklist
+                    for (let i = 0; i < defaultBookingItems.length; i++) {
+                        await addDoc(todosRef, { text: defaultBookingItems[i], completed: false, createdAt: Date.now() + i });
+                    }
                     return;
                 }
 
@@ -427,7 +442,18 @@
 
         function getLocalTodos() {
             try {
-                return JSON.parse(localStorage.getItem('jeju_todos') || '[]');
+                const stored = localStorage.getItem('jeju_todos');
+                if (!stored) {
+                    const initial = defaultBookingItems.map((text, idx) => ({
+                        id: 'loc_' + (Date.now() + idx),
+                        text: text,
+                        completed: false,
+                        createdAt: Date.now() + idx
+                    }));
+                    localStorage.setItem('jeju_todos', JSON.stringify(initial));
+                    return initial;
+                }
+                return JSON.parse(stored);
             } catch(e) { return []; }
         }
 
@@ -562,16 +588,16 @@
                 ]
             },
             3: {
-                title: "Day 3：新濟州 ➔ 免稅店 ➔ 七星街 ➔ 樂天超市 ➔ 三姓穴海鮮湯",
-                date: "Day 3 · 全日購物血拼與美食專日",
+                title: "Day 3：新濟州 ➔ 免稅店 ➔ 七星街 ➔ 樂天超市 ➔ 熟成到黑毛豬晚餐",
+                date: "Day 3 · 市區購物血拼與頂級黑毛豬",
                 locations: [
                     { id: '3-1', time: "09:00", title: "由 Shilla Stay 出發", desc: "在新濟州酒店食過豐富早餐後出發，展開全日購物血拼與人氣美食之旅！", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (酒店往商圈約 1km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
                     { id: '3-2', time: "10:00", title: "新濟州蓮洞商圈 & 新羅免稅店", desc: "【血拼重頭戲】濟州最繁華商圈！狂掃韓國人氣美妝、流行服飾及新羅免稅店名牌。", tag: "美妝名牌血拼", parking: "🅿️ 免稅店專屬停車場", nextDrive: "🚗 駕駛約 15 分鐘 (蓮洞往七星街約 6km)", lat: 33.4882, lng: 126.4912, query: "Shilla Duty Free Jeju, Jeju-do, South Korea" },
                     { id: '3-3', time: "13:00", title: "七星街 (칠성로) & 中央路 (중앙로) 行街", desc: "【市區潮流血拼】濟州最著名嘅步行商業街！盡情行街買潮流鞋服、文創特色小店。", tag: "潮流街行街", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 5 分鐘 (七星街往地下街約 1km)", lat: 33.5126, lng: 126.5268, query: "Chilsungro Shopping Street, Jeju-do, South Korea" },
                     { id: '3-4', time: "15:00", title: "中央地下街 (服飾/美妝 Shopping)", desc: "濟州最大嘅室內地下購物街！主打平價潮流服飾、鞋履與美妝。", tag: "地下街血拼", parking: "🅿️ 地下公用停車場", nextDrive: "🚗 駕駛約 15 分鐘 (地下街往樂天超市約 6km)", lat: 33.5112, lng: 126.5220, query: "Jeju Jungang Underground Shopping Center, Jeju-do, South Korea" },
-                    { id: '3-5', time: "17:00", title: "Lotte Mart 濟州店 (大型量販)", desc: "【超市大掃貨】大型韓國樂天超市！一次過瘋狂掃入人氣零食、即食麵、韓式醬料及伴手禮。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (樂天超市往三姓穴約 4km)", lat: 33.4885, lng: 126.4940, query: "Lotte Mart Jeju, Jeju-do, South Korea" },
-                    { id: '3-6', time: "18:30", title: "三姓穴海鮮湯 (晚餐)", desc: "【豐富海鮮鍋】滿滿新鮮活鮑魚、八爪魚與多種海鮮堆疊而成嘅鮮甜海鮮鍋，大飽口福！", tag: "必食晚餐", parking: "🅿️ 餐廳後方專用車位", nextDrive: "🚗 駕駛約 10 分鐘 (返回酒店約 4km)", lat: 33.5042, lng: 126.5273, query: "Samseonghyeol Haemultang, Jeju-do, South Korea" },
-                    { id: '3-7', time: "20:00", title: "返回 Shilla Stay 休息", desc: "滿載而歸，提著大包小包戰利品返回酒店整理休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
+                    { id: '3-5', time: "17:00", title: "Lotte Mart 濟州店 (大型量販)", desc: "【超市大掃貨】大型韓國樂天超市！一次過瘋狂掃入人氣零食、即食麵、韓式醬料及伴手禮。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (樂天超市往老衡洞熟成到約 1.5km)", lat: 33.4885, lng: 126.4940, query: "Lotte Mart Jeju, Jeju-do, South Korea" },
+                    { id: '3-6', time: "18:30", title: "③ 熟成到 盧衡本館 (Sukseongdo 頂級熟成黑毛豬)", desc: "【新濟州人氣No.1名店】位於老衡洞（距 Shilla Stay 僅 3 分鐘車程）！必食極致低溫熟成五花肉與豬頸肉，專人代烤肉汁爆漿！", tag: "10大名店③", parking: "🅿️ 專屬/周邊停車場", nextDrive: "🚗 駕駛約 3 分鐘 (晚餐後返回酒店約 1.5km)", lat: 33.4831, lng: 126.4820, query: "숙성도 노형본점, Jeju-do, South Korea" },
+                    { id: '3-7', time: "20:30", title: "返回 Shilla Stay 休息", desc: "滿載而歸，提著大包小包戰利品與飽滿肚子返回酒店整理休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
                 ],
                 backups: [
                     { id: 'b-3-1', title: "涯月海邊散步路", desc: "充滿文青氣息的海岸咖啡街。", lat: 33.4630, lng: 126.3120, query: "Aewol Coastal Road, Jeju-do, South Korea" },
@@ -587,7 +613,7 @@
                     { id: '4-3', time: "11:30", title: "① 우진해장국 (Ujin Haejangguk)", desc: "【濟州市區名店】必食招牌超濃郁蔬菜牛肉湯，排隊人潮極多但極高質！", tag: "10大名店①", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 10 分鐘 (牛肉湯往金萬福約 4km)", lat: 33.5142, lng: 126.5175, query: "Ujin Haejangguk, Jeju-do, South Korea" },
                     { id: '4-4', time: "13:00", title: "④ 제주김만복 本店 (金萬福)", desc: "【機場附近名店】招牌鮑魚蛋卷菜包飯，麻油香氣十足，買來當輕食點心。", tag: "10大名店④", parking: "🅿️ 餐廳門口免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (金萬福往東門市場約 3km)", lat: 33.4971, lng: 126.5085, query: "Jeju Gimmanbok Main Store, Jeju-do, South Korea" },
                     { id: '4-5', time: "14:00", title: "東門市場 (手信採購)", desc: "購買濟州特產柑橘巧克力、伴手禮及紀念品。", tag: "手信購物", parking: "🅿️ 市場大型立體停車場", nextDrive: "🚗 駕駛約 15 分鐘 (東門市場往 Emart 約 6km)", lat: 33.5126, lng: 126.5268, query: "Dongmun Traditional Market, Jeju-do, South Korea" },
-                    { id: '4-6', time: "15:30", title: "Emart 新濟州店 (最後超市掃貨)", desc: "再次補充漏買嘅手信、韓式醬料同零食。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (Emart 往龍潭海岸約 4km)", lat: 33.4862, lng: 126.4815, query: "E-Mart Sinjeju, Jeju-do, South Korea" },
+                    { id: '4-6', time: "15:30", title: "Emart 新濟州店 (最後超市掃貨)", desc: "再次補充漏買嘅手信、韓式醬料同零食。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (Emart 往龍潭海岸約 4km)", lat: 33.5189, lng: 126.5021, query: "E-Mart Sinjeju, Jeju-do, South Korea" },
                     { id: '4-7', time: "17:00", title: "龍潭海岸 Café 嘆海景下午茶", desc: "在機場附近的海岸咖啡廳欣賞最後的海景，喝杯咖啡回味旅程。", tag: "海景咖啡", parking: "🅿️ 咖啡廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (海岸 Cafe 往冠軍醬蟹約 3km)", lat: 33.5189, lng: 126.5021, query: "Yongdam Coastal Road, Jeju-do, South Korea" },
                     { id: '4-8', time: "18:30", title: "챔피언꽃게 (冠軍醬蟹 - 完美晚餐)", desc: "【新濟州名店】位於老衡洞！享用鮮美無腥味的著名冠軍醬油蟹，配上一口香濃蟹膏飯，完美收官！", tag: "必食冠軍醬蟹", parking: "🅿️ 餐廳專屬/周邊停車", nextDrive: "🚗 駕駛約 10 分鐘 (晚餐往機場約 3km)", lat: 33.4862, lng: 126.4880, query: "챔피언꽃게, Jeju-do, South Korea" },
                     { id: '4-9', time: "19:30", title: "濟州國際機場 (還車與登機)", desc: "順利歸還車輛，前往濟州機場辦理 21:30 起飛之 LJ713 航班登機手續。", tag: "機場還車", parking: "🅿️ 租車公司還車區", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
@@ -621,8 +647,10 @@
         function initMap() {
             if (map) return;
 
+            // 停用 doubleClickZoom，避免雙擊放大地圖
             map = L.map('interactive-map', {
-                zoomControl: true
+                zoomControl: true,
+                doubleClickZoom: false
             }).setView([33.38, 126.55], 10);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -699,7 +727,6 @@
             }
         }
 
-        // 搜尋功能主邏輯
         function handleSearch(keyword) {
             const clearBtn = document.getElementById('search-clear-btn');
             const resultsPanel = document.getElementById('search-results-panel');
@@ -717,7 +744,6 @@
             clearBtn.classList.remove('hidden');
             resultsPanel.classList.remove('hidden');
 
-            // 切換至地圖與清單主畫面
             document.getElementById('main-grid').classList.remove('hidden');
             document.getElementById('info-page').classList.add('hidden');
             document.getElementById('todo-page').classList.add('hidden');
@@ -726,6 +752,7 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
+            container.scrollTop = 0; // 自動回頂
 
             let matchedCount = 0;
 
@@ -874,9 +901,10 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
+            container.scrollTop = 0; // 自動回滾至頂部
 
             data.locations.forEach((loc, index) => {
-                const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("冠軍醬蟹");
+                const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹");
                 const tagClass = isFood ? "bg-amber-100 text-amber-800 border-amber-200 font-bold" : "bg-white border-stone-200 text-stone-600";
                 
                 const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
@@ -1025,6 +1053,7 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
+            container.scrollTop = 0; // 自動回滾至頂部
 
             for (let d = 1; d <= 4; d++) {
                 const dayHeader = document.createElement('div');
@@ -1106,7 +1135,7 @@
                 const data = itineraryData[d];
                 html += `<div class="bg-stone-50 p-3.5 rounded-lg border border-stone-200 space-y-2.5"><h4 class="font-bold text-xs ${dayTextColors[d]}">${data.title} (${data.date})</h4><div class="space-y-2.5 border-l-2 border-stone-200 pl-3">`;
                 data.locations.forEach((loc, idx) => {
-                    const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("冠軍醬蟹");
+                    const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹");
                     const titleColor = isFood ? "text-amber-800 font-extrabold" : "text-stone-900";
                     const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
                     const driveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}&travelmode=driving`;
@@ -1200,7 +1229,7 @@
         function onHkdInput() {
             const hkd = parseFloat(document.getElementById('input-hkd').value);
             const rate = getRate();
-            const krwInput = document.getElementById('input-krw');
+            const krwInput = document.getElementById('input-hkd');
             if (isNaN(hkd) || hkd <= 0) {
                 krwInput.value = '0';
                 return;
