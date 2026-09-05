@@ -165,6 +165,43 @@
                     <i class="fa-solid fa-arrow-left mr-1"></i>返回行程
                 </button>
             </div>
+
+            <!-- 出發前準備與 Booking 攻略專區 -->
+            <div class="bg-rose-50/80 p-3.5 rounded-xl border border-rose-200 space-y-3">
+                <h3 class="font-extrabold text-rose-900 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-clipboard-check text-rose-600"></i> 出發前準備 & 餐廳 Booking 必看攻略
+                </h3>
+                
+                <div class="space-y-2 text-stone-800">
+                    <div class="bg-white p-2.5 rounded-lg border border-rose-100">
+                        <span class="font-bold text-rose-700 block mb-0.5"><i class="fa-solid fa-mobile-screen mr-1"></i> 1. 必備手機 App & 遠端抽號碼牌</span>
+                        <p class="text-[11px] text-stone-600 leading-relaxed">
+                            • <strong>CatchTable App (國際版)</strong>：預先註冊！<strong>Day 3 早上線上抽 London Bagel Museum 號碼牌</strong>；晚餐預約/遠端排隊<strong>熟成到 (Sukseongdo) 黑毛豬</strong>。<br>
+                            • <strong>Naver Map / KakaoMap</strong>：韓國 Google Maps 步行/開車受限，自駕導航請搭配 Naver Map。
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-lg border border-rose-100">
+                        <span class="font-bold text-rose-700 block mb-0.5"><i class="fa-solid fa-id-card mr-1"></i> 2. 租車與必備證件</span>
+                        <p class="text-[11px] text-stone-600 leading-relaxed">
+                            • <strong>國際駕駛執照 (IDP) 正本</strong> + <strong>香港駕駛執照正本</strong>（兩者必須同時出示，租車公司會嚴格查驗）。<br>
+                            • 護照正本 + 主駕駛名下的實體信用卡（付押金及簽帳）。<br>
+                            • 建議自備<strong>車用手機架</strong>方便開車睇導航。
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-2.5 rounded-lg border border-rose-100">
+                        <span class="font-bold text-rose-700 block mb-0.5"><i class="fa-solid fa-credit-card mr-1"></i> 3. 網絡、支付與入境卡</span>
+                        <p class="text-[11px] text-stone-600 leading-relaxed">
+                            • 開通信用卡海外簽帳優惠（如 HSBC / Mox）。<br>
+                            • 準備少量<strong>韓圜現金 (KRW)</strong>：東門市場小吃、部分自動泊車繳費機。<br>
+                            • 出發前 3 天內填寫 **Q-Code 健康申報** 或機上填寫紙本入境卡。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 航班資訊與住宿 -->
             <div class="grid grid-cols-1 gap-3">
                 <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
                     <span class="font-bold text-rose-600 block mb-1 text-xs">去程航班 (LJ714)</span>
@@ -195,7 +232,7 @@
                     <h2 class="text-sm font-extrabold text-stone-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-cloud text-emerald-600"></i> 二人同行實時雲端 Checklist
                     </h2>
-                    <p class="text-[11px] text-stone-500 mt-0.5">預約事項與行李清單（已預設事前 Booking 項目）</p>
+                    <p class="text-[11px] text-stone-500 mt-0.5">預約事項與行李清單（預設預約項目及即時連線）</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <span id="sync-status" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold">已連線</span>
@@ -398,7 +435,6 @@
                 listContainer.innerHTML = '';
                 
                 if (snapshot.empty) {
-                    // 若雲端資料庫為空，自動填充預設預約 Checklist
                     for (let i = 0; i < defaultBookingItems.length; i++) {
                         await addDoc(todosRef, { text: defaultBookingItems[i], completed: false, createdAt: Date.now() + i });
                     }
@@ -836,7 +872,7 @@
             }
 
             if (matchedCount === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-stone-400 text-xs">找不到與「<strong>${escapeHtml(query)}</strong>」相關的行程，試試搜尋餐廳、景點名稱或 Day 幾！</div>`;
+                container.innerHTML = `<div class="text-center py-10 text-stone-400 text-xs">找不到與「<strong>${escapeHtml(query)}</strong>」相關的行程，試視搜尋餐廳、景點名稱或 Day 幾！</div>`;
                 summaryText.innerHTML = `找不到與「${escapeHtml(query)}」相關的行程`;
             } else {
                 summaryText.innerHTML = `找到 <strong class="text-rose-600">${matchedCount}</strong> 個與「${escapeHtml(query)}」相關的行程`;
@@ -1229,7 +1265,7 @@
         function onHkdInput() {
             const hkd = parseFloat(document.getElementById('input-hkd').value);
             const rate = getRate();
-            const krwInput = document.getElementById('input-hkd');
+            const krwInput = document.getElementById('input-krw');
             if (isNaN(hkd) || hkd <= 0) {
                 krwInput.value = '0';
                 return;
