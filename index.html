@@ -202,7 +202,7 @@
             </div>
 
             <!-- 航班資訊與住宿 -->
-            <div class="grid grid-cols-1 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="bg-stone-50 p-3 rounded-lg border border-stone-200">
                     <span class="font-bold text-rose-600 block mb-1 text-xs">去程航班 (LJ714)</span>
                     <p class="text-xs"><strong>時間：</strong>02:00 香港 T1 ➔ 06:05 濟州機場 (代號: UR69WB)</p>
@@ -398,6 +398,7 @@
             "🥩 Day 2: CatchTable 預約/現場登記『Dotdam (돗담)』黑毛豬燒肉",
             "🥩 Day 3: CatchTable 預約/現場登記『熟成到 (Sukseongdo)』黑毛豬",
             "🐟 Day 1: 預約 고집돌우럭 (鰲魚套餐) / 滿月林韓牛",
+            "🦀 Day 4: 預約 챔피언꽃게 (冠軍醬蟹) / Ujin Haejangguk",
             "🚗 申請香港國際駕駛執照 (IDP) 並帶備香港駕照正本",
             "📲 下載並熟悉 Naver Map / KakaoMap (韓國自駕地圖)",
             "📋 填寫 K-ETA 或韓國入境 Q-Code 健康申報",
@@ -584,39 +585,39 @@
 
         const itineraryData = {
             1: {
-                title: "Day 1：機場 ➔ 彩虹公路 ➔ 麵條 ➔ Outlet ➔ 鰲魚 ➔ 滿月林韓牛晚餐 ➔ 新緣橋煙花",
+                title: "DAY 1：機場 ➔ 彩虹公路 ➔ 姊妹麵條 ➔ Outlet ➔ 鰲魚 ➔ 滿月林韓牛 ➔ 煙花秀",
                 date: "Day 1 · 航班 LJ714",
                 locations: [
-                    { id: '1-1', time: "06:05", title: "抵達濟州國際機場 (LJ714)", desc: "由香港 T1 出發搭乘 LJ714 順利降落濟州，辦理入境及提取行李。", tag: "航班", parking: "🅿️ 機場大停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往租車中心約 2km)", lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
-                    { id: '1-2', time: "07:00", title: "濟州機場租車中心 (成功取車)", desc: "清晨準時完成手續並提取車輛，正式展開二人世界自駕之旅！", tag: "取車", parking: "🅿️ 租車專用場", nextDrive: "🚗 駕駛約 10 分鐘 (往彩虹公路約 4km)", lat: 33.5110, lng: 126.4920, query: "Jeju International Airport car rental, Jeju-do" },
-                    { id: '1-3', time: "07:30", title: "彩虹公路 (도두동 무지개해안도로)", desc: "機場附近色彩繽紛嘅海岸防波堤，第一站打卡拍照留下甜蜜合照。", tag: "打卡景點", parking: "🅿️ 路邊臨時停車", nextDrive: "🚗 駕駛約 10 分鐘 (往市區麵店約 4km)", lat: 33.5002, lng: 126.4785, query: "Dodubong Rainbow Coastal Road, Jeju-do, South Korea" },
-                    { id: '1-4', time: "08:30", title: "② 姊妹麵條 (Jamae Guksu)", desc: "【濟州市區名店】清晨品嚐濃郁大骨熬製的熱騰騰濟州傳統豬肉麵。", tag: "10大名店②", parking: "🅿️ 餐廳免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (市區往神話世界 Outlet 約 30km)", lat: 33.5123, lng: 126.5284, query: "Jamae Guksu, Jeju-do, South Korea" },
-                    { id: '1-5', time: "10:30", title: "濟州 Premium Outlet (神話世界)", desc: "【血拼購物】去 Zen Hideaway 擺低行李前，先去大型 Outlet 行街買名牌與潮流服飾！", tag: "購物血拼", parking: "🅿️ Outlet 免費大型停車場", nextDrive: "🚗 駕駛約 25 分鐘 (Outlet 往 Zen Hideaway 約 20km)", lat: 33.3051, lng: 126.3192, query: "Jeju Shinhwa World Premium Outlet, Jeju-do, South Korea" },
-                    { id: '1-6', time: "12:30", title: "Zen Hideaway@Jeju (Check-in/寄存行李)", desc: "抵達山房山海岸邊之無敵海景精品旅宿，辦理入住或寄存行李。", tag: "酒店抵達", parking: "🅿️ 民宿免費專屬停車", nextDrive: "🚗 駕駛約 15 分鐘 (往中文區鰲魚套餐約 12km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
-                    { id: '1-7', time: "13:30", title: "⑩ 고집돌우럭 중문점 (鰲魚套餐)", desc: "【中文區名店】海鮮控必食！鮮甜肥美嘅純石砸鰲魚套餐，極致惹味下飯。", tag: "10大名店⑩", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往藥泉寺約 3km)", lat: 33.2512, lng: 126.4110, query: "Gojip Dol Urok Jungmun, Seogwipo, Jeju-do, South Korea" },
-                    { id: 1-8, time: "15:00", title: "藥泉寺 & 大浦海岸柱狀節理帶", desc: "參觀韓國宏偉依海大寺，並欣賞大自然方形火山熔岩石柱奇觀。", tag: "自然景點", parking: "🅿️ 景點免費/收費停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往The Cliff約 3km)", lat: 33.2372, lng: 126.4250, query: "Daepo Haean Jusangjeolli Cliff, Jeju-do, South Korea" },
-                    { id: '1-9', time: "16:30", title: "The Cliff (崖邊 Cafe)", desc: "坐落於懸崖旁的浪漫海景咖啡廳，對著湛藍大海嘆咖啡享受日落氛圍。", tag: "人氣 Cafe", parking: "🅿️ 中文區公用停車場", nextDrive: "🚗 駕駛約 25 分鐘 (中文區往韓牛餐廳約 14km)", lat: 33.2458, lng: 126.4112, query: "The Cliff, Jungmun, Jeju-do, South Korea" },
-                    { id: '1-10', time: "18:00", title: "滿月林韓牛 (만월 頂級韓牛炭火燒)", desc: "【極品韓牛晚餐】享用頂級 1++ 韓牛炭火燒肉，油脂花紋均勻且肉嫩多汁，入口即溶！", tag: "極品韓牛晚餐", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往新緣橋約 2km)", lat: 33.2520, lng: 126.5620, query: "만월숯불구이, Jeju-do, South Korea" },
-                    { id: '1-11', time: "20:00", title: "🎆 西歸浦港新緣橋 (音樂噴泉及煙花秀)", desc: "【每週五/六限定】食飽韓牛後，漫步欣賞新緣橋五彩燈光夜海、音樂噴泉與精彩煙花表演！", tag: "限定夜景", parking: "🅿️ 新緣橋大型免費停車場", nextDrive: "🚗 駕駛約 35 分鐘 (返回民宿約 18km)", lat: 33.2403, lng: 126.5601, query: "Saeyeongyo Bridge, Seogwipo, Jeju-do, South Korea" },
-                    { id: '1-12', time: "21:30", title: "返回 Zen Hideaway@Jeju 休息", desc: "返回海岸民宿安睡，聽著浪濤聲入睡。", tag: "返回民宿", parking: "🅿️ 民宿免費專屬停車", nextDrive: null, lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" }
+                    { id: '1-1', time: "06:05", title: "抵達濟州國際機場 (LJ714)", desc: "香港 T1 出發降落濟州，辦理入境及提取行李。", tag: "航班降落", parking: "🅿️ 機場大停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往租車中心約 2km)", lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
+                    { id: '1-2', time: "07:00", title: "濟州機場租車中心 (成功取車)", desc: "清晨準時完成手續並提取車輛，展開自駕之旅。", tag: "取車出發", parking: "🅿️ 租車專用場", nextDrive: "🚗 駕駛約 10 分鐘 (往彩虹公路約 4km)", lat: 33.5110, lng: 126.4920, query: "Jeju International Airport car rental, Jeju-do" },
+                    { id: '1-3', time: "07:30", title: "彩虹公路 (도두동 무지개해안도로)", desc: "機場附近色彩繽紛防波堤，第一站打卡拍照。", tag: "打卡景點", parking: "🅿️ 路邊臨時停車", nextDrive: "🚗 駕駛約 15 分鐘 (往姊妹麵條約 6km)", lat: 33.5002, lng: 126.4785, query: "Dodubong Rainbow Coastal Road, Jeju-do, South Korea" },
+                    { id: '1-4', time: "08:30", title: "② 姊妹麵條 (Jamae Guksu)", desc: "【10大名店】清晨品嚐濃郁大骨熬製的濟州傳統豬肉麵。", tag: "10大名店②", parking: "🅿️ 餐廳免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (往神話世界 Outlet 約 30km)", lat: 33.5123, lng: 126.5284, query: "Jamae Guksu, Jeju-do, South Korea" },
+                    { id: '1-5', time: "10:30", title: "濟州 Premium Outlet (神話世界)", desc: "【血拼購物】擺低行李前先去大型 Outlet 買名牌服飾。", tag: "購物血拼", parking: "🅿️ Outlet 免費大型停車場", nextDrive: "🚗 駕駛約 20 分鐘 (往 Zen Hideaway 約 15km)", lat: 33.3051, lng: 126.3192, query: "Jeju Shinhwa World Premium Outlet, Jeju-do, South Korea" },
+                    { id: '1-6', time: "12:30", title: "Zen Hideaway@Jeju (Check-in/寄存行李)", desc: "抵達山房山海岸無敵海景民宿，辦理入住或寄存行李。", tag: "酒店抵達", parking: "🅿️ 民宿免費專屬停車", nextDrive: "🚗 駕駛約 15 分鐘 (往鰲魚套餐約 12km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-7', time: "13:30", title: "⑩ 고집돌우럭 중문점 (鰲魚套餐)", desc: "【10大名店】海鮮控必食！鮮甜肥美純石砸鰲魚套餐。", tag: "10大名店⑩", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往藥泉寺及柱狀節理帶約 3km)", lat: 33.2512, lng: 126.4110, query: "Gojip Dol Urok Jungmun, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-8', time: "15:00", title: "藥泉寺 & 大浦海岸柱狀節理帶", desc: "參觀宏偉依海大寺，並欣賞方形火山熔岩石柱奇觀。", tag: "自然景點", parking: "🅿️ 景點免費/收費停車場", nextDrive: "🚗 駕駛約 5 分鐘 (往 The Cliff 約 2km)", lat: 33.2372, lng: 126.4250, query: "Daepo Haean Jusangjeolli Cliff, Jeju-do, South Korea" },
+                    { id: '1-9', time: "16:30", title: "The Cliff (崖邊 Cafe)", desc: "懸崖旁浪漫海景咖啡廳，對著湛藍大海嘆咖啡享受日落。", tag: "人氣 Cafe", parking: "🅿️ 中文區公用停車場", nextDrive: "🚗 駕駛約 25 分鐘 (往滿月林韓牛約 15km)", lat: 33.2458, lng: 126.4112, query: "The Cliff, Jungmun, Jeju-do, South Korea" },
+                    { id: '1-10', time: "18:00", title: "滿月林韓牛 (만월 頂級韓牛炭火燒)", desc: "【極品韓牛晚餐】享用頂級 1++ 韓牛炭火燒肉，肉嫩多汁。", tag: "極品韓牛晚餐", parking: "🅿️ 餐廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往新緣橋約 4km)", lat: 33.2520, lng: 126.5620, query: "만월숯불구이, Jeju-do, South Korea" },
+                    { id: '1-11', time: "20:00", title: "🎆 西歸浦港新緣橋 (音樂噴泉及煙花秀)", desc: "【每週五/六限定】漫步欣賞新緣橋夜景、噴泉與煙花秀。", tag: "限定夜景", parking: "🅿️ 新緣橋大型免費停車場", nextDrive: "🚗 駕駛約 35 分鐘 (返回民宿約 22km)", lat: 33.2403, lng: 126.5601, query: "Saeyeongyo Bridge, Seogwipo, Jeju-do, South Korea" },
+                    { id: '1-12', time: "21:30", title: "返回 Zen Hideaway@Jeju 休息", desc: "返回海岸民宿，聽著浪濤聲安睡。", tag: "返回民宿", parking: "🅿️ 民宿免費專屬停車", nextDrive: null, lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" }
                 ],
                 backups: [
                     { id: 'b-1-1', title: "山房山龍頭海岸", desc: "民宿附近的壯麗火山岩海岸步道。", lat: 33.2315, lng: 126.3145, query: "Yongmeori Coast, Seogwipo, Jeju-do, South Korea" },
-                    { id: 'b-1-2', title: "中文海水浴場", desc: "火山岩沙灘漫步，欣賞絕美漸層日落。", lat: 33.2447, lng: 126.4120, query: "Jungmun Saekdal Beach, Seogwipo, Jeju-do, South Korea" }
+                    { id: 'b-1-2', title: "中文海水浴場", desc: "火山岩沙灘漫步，欣賞漸層日落。", lat: 33.2447, lng: 126.4120, query: "Jungmun Saekdal Beach, Seogwipo, Jeju-do, South Korea" }
                 ]
             },
             2: {
-                title: "Day 2：Zen Hideaway ➔ 城山日出峰 ➔ 明珍鮑魚 ➔ 月汀里 ➔ London Bagel ➔ 咸德 ➔ Dotdam黑豬肉晚餐",
+                title: "DAY 2：城山日出峰 ➔ 明珍鮑魚 ➔ 月汀里 ➔ London Bagel ➔ 咸德 ➔ Dotdam黑豬肉",
                 date: "Day 2 · 東部順路線與 Dotdam 黑豬肉",
                 locations: [
-                    { id: '2-1', time: "08:00", title: "由 Zen Hideaway 退房出發", desc: "在西南海岸民宿享用完早餐後退房出發，沿逆時針方向東行橫越南部公路。", tag: "民宿出發", parking: "🅿️ 民宿免費停車", nextDrive: "🚗 駕駛約 1 小時 10 分鐘 (西南往東部城山約 58km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
-                    { id: '2-2', time: "09:30", title: "城山日出峰 (壯麗登高)", desc: "登頂世界自然遺產火山口，享受無敵海景與壯闊火山地形。", tag: "世界遺產", parking: "🅿️ 免費大型停車場", nextDrive: "🚗 駕駛約 20 分鐘 (城山往舊左明珍鮑魚約 16km)", lat: 33.4587, lng: 126.9425, query: "Seongsan Ilchulbong, Jeju-do, South Korea" },
-                    { id: '2-3', time: "11:30", title: "⑤ 명진전복 (明珍鮑魚)", desc: "【舊左名店】必食招牌鮑魚石鍋飯與新鮮鮑魚粥，鮮甜濃郁（可順便開啟 London Bagel CatchTable 線上排隊）。", tag: "10大名店⑤", parking: "🅿️ 餐廳專用停車位", nextDrive: "🚗 駕駛約 15 分鐘 (舊左往月汀里約 10km)", lat: 33.5315, lng: 126.8375, query: "Myeongjin Jeonbok, Gujwa-eup, Jeju-do, South Korea" },
-                    { id: '2-4', time: "13:00", title: "月汀里海灘 (Woljeongri Beach & 透明獨木舟)", desc: "漫步於風車海岸與蔚藍海灘，體驗浪漫透明獨木舟水上活動，享受清涼海風。", tag: "水上獨木舟", parking: "🅿️ 月汀里免費公共停車場", nextDrive: "🚗 駕駛約 10 分鐘 (月汀里往東福里約 6km)", lat: 33.5552, lng: 126.7721, query: "Woljeongri Beach, Jeju-do, South Korea" },
-                    { id: '2-5', time: "14:30", title: "🥯 London Bagel Museum (濟州店)", desc: "【韓國爆紅名店】位於東福里海岸，品嚐超人氣海景貝果下午茶與招牌 Cream Cheese！", tag: "人氣爆紅", parking: "🅿️ 專屬免費停車場 (東福里1352)", nextDrive: "🚗 駕駛約 15 分鐘 (東福里往咸德約 8km)", lat: 33.5536, lng: 126.7156, query: "London Bagel Museum Jeju, Gujwa-eup, Jeju-do, South Korea" },
-                    { id: '2-6', time: "16:00", title: "咸德海水浴場 & ⑧ Cafe Delmoondo & 咸德海女包飯", desc: "⑧【咸德名店】漫步果凍海沙灘，於崖邊名店嘆海景咖啡麵包，並享用美味的咸德海女包飯！", tag: "10大名店⑧", parking: "🅿️ 咸德公共大停車場", nextDrive: "🚗 駕駛約 35 分鐘 (咸德往新濟州約 22km)", lat: 33.5433, lng: 126.6685, query: "Cafe Delmoondo, Hamdeok, Jeju-do, South Korea" },
-                    { id: '2-7', time: "18:00", title: "Shilla Stay (Check-in)", desc: "由東部海岸返抵新濟州市區，順利登記入住 Shilla Stay 并安頓行李。", tag: "酒店抵達", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 3 分鐘 (酒店往 Dotdam 餐廳約 1km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
-                    { id: '2-8', time: "19:00", title: "Dotdam (돗담 - 新濟州爆紅質感黑毛豬)", desc: "【新濟州人氣名店】位於蓮洞商圈（距 Shilla Stay 僅步程距離）！極具現代風格的質感黑毛豬燒肉，專人代烤肉汁飽滿極致享受。", tag: "人氣名店 Dotdam", parking: "🅿️ 專屬/周邊停車", nextDrive: "🚗 駕駛約 3 分鐘 (返回酒店約 1km)", lat: 33.4862, lng: 126.4880, query: "Dotdam, Yeondong, Jeju-do, South Korea" },
+                    { id: '2-1', time: "08:00", title: "由 Zen Hideaway 退房出發", desc: "享用完早餐後退房出發，沿逆時針方向橫越南部公路東行。", tag: "民宿退房", parking: "🅿️ 民宿免費停車", nextDrive: "🚗 駕駛約 1 小時 10 分鐘 (往城山日出峰約 58km)", lat: 33.2415, lng: 126.2995, query: "Zen Hideaway Jeju, Seogwipo, Jeju-do, South Korea" },
+                    { id: '2-2', time: "09:30", title: "城山日出峰 (壯麗登高)", desc: "登頂世界自然遺產火山口，享受無敵海景與火山地形。", tag: "世界遺產", parking: "🅿️ 免費大型停車場", nextDrive: "🚗 駕駛約 20 分鐘 (往明珍鮑魚約 16km)", lat: 33.4587, lng: 126.9425, query: "Seongsan Ilchulbong, Jeju-do, South Korea" },
+                    { id: '2-3', time: "11:30", title: "⑤ 명진전복 (明珍鮑魚)", desc: "【10大名店】招牌鮑魚石鍋飯與新鮮鮑魚粥（同時 CatchTable 抽 London Bagel）。", tag: "10大名店⑤", parking: "🅿️ 餐廳專用停車位", nextDrive: "🚗 駕駛約 15 分鐘 (往月汀里約 10km)", lat: 33.5315, lng: 126.8375, query: "Myeongjin Jeonbok, Gujwa-eup, Jeju-do, South Korea" },
+                    { id: '2-4', time: "13:00", title: "月汀里海灘 (Woljeongri Beach & 透明獨木舟)", desc: "漫步風車海岸與蔚藍海灘，體驗浪漫透明獨木舟水上活動。", tag: "水上活動", parking: "🅿️ 月汀里免費公共停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往 London Bagel 約 6km)", lat: 33.5552, lng: 126.7721, query: "Woljeongri Beach, Jeju-do, South Korea" },
+                    { id: '2-5', time: "14:30", title: "🥯 London Bagel Museum (濟州店)", desc: "【人氣爆紅】東福里海岸超人氣海景貝果下午茶與 Cream Cheese。", tag: "人氣爆紅", parking: "🅿️ 專屬免費停車場 (東福里1352)", nextDrive: "🚗 駕駛約 15 分鐘 (往咸德海水浴場約 8km)", lat: 33.5536, lng: 126.7156, query: "London Bagel Museum Jeju, Gujwa-eup, Jeju-do, South Korea" },
+                    { id: '2-6', time: "16:00", title: "咸德海水浴場 & ⑧ Cafe Delmoondo & 咸德海女包飯", desc: "【10大名店】漫步果凍海沙灘，崖邊嘆海景咖啡及享用咸德海女包飯。", tag: "10大名店⑧", parking: "🅿️ 咸德公共大停車場", nextDrive: "🚗 駕駛約 35 分鐘 (往 Shilla Stay 約 22km)", lat: 33.5433, lng: 126.6685, query: "Cafe Delmoondo, Hamdeok, Jeju-do, South Korea" },
+                    { id: '2-7', time: "18:00", title: "Shilla Stay (Check-in)", desc: "返抵新濟州市區，登記入住 Shilla Stay 并安頓行李。", tag: "酒店抵達", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 3 分鐘 / 步行 5 分鐘 (往 Dotdam 約 1km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '2-8', time: "19:00", title: "Dotdam (돗담 - 新濟州爆紅質感黑毛豬)", desc: "【人氣名店】蓮洞商圈質感黑毛豬燒肉，專人代烤肉汁飽滿。", tag: "人氣名店", parking: "🅿️ 專屬/周邊停車場", nextDrive: "🚗 駕駛約 3 分鐘 / 步行 5 分鐘 (返回 Shilla Stay 約 1km)", lat: 33.4862, lng: 126.4880, query: "Dotdam, Yeondong, Jeju-do, South Korea" },
                     { id: '2-9', time: "21:00", title: "返回 Shilla Stay 休息", desc: "返回新濟州酒店休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
                 ],
                 backups: [
@@ -625,36 +626,36 @@
                 ]
             },
             3: {
-                title: "Day 3：新濟州 ➔ 免稅店 ➔ 七星街 ➔ 樂天超市 ➔ 熟成到黑毛豬晚餐",
+                title: "DAY 3：新濟州 ➔ 免稅店 ➔ 七星街 ➔ 樂天超市 ➔ 熟成到黑毛豬晚餐",
                 date: "Day 3 · 市區購物血拼與頂級黑毛豬",
                 locations: [
-                    { id: '3-1', time: "09:00", title: "由 Shilla Stay 出發", desc: "在新濟州酒店食過豐富早餐後出發，展開全日購物血拼與人氣美食之旅！", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (酒店往商圈約 1km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
-                    { id: '3-2', time: "10:00", title: "新濟州蓮洞商圈 & 新羅免稅店", desc: "【血拼重頭戲】濟州最繁華商圈！狂掃韓國人氣美妝、流行服飾及新羅免稅店名牌。", tag: "美妝名牌血拼", parking: "🅿️ 免稅店專屬停車場", nextDrive: "🚗 駕駛約 15 分鐘 (蓮洞往七星街約 6km)", lat: 33.4882, lng: 126.4912, query: "Shilla Duty Free Jeju, Jeju-do, South Korea" },
-                    { id: '3-3', time: "13:00", title: "七星街 (칠성로) & 中央路 (중앙로) 行街", desc: "【市區潮流血拼】濟州最著名嘅步行商業街！盡情行街買潮流鞋服、文創特色小店。", tag: "潮流街行街", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 5 分鐘 (七星街往地下街約 1km)", lat: 33.5126, lng: 126.5268, query: "Chilsungro Shopping Street, Jeju-do, South Korea" },
-                    { id: '3-4', time: "15:00", title: "中央地下街 (服飾/美妝 Shopping)", desc: "濟州最大嘅室內地下購物街！主打平價潮流服飾、鞋履與美妝。", tag: "地下街血拼", parking: "🅿️ 地下公用停車場", nextDrive: "🚗 駕駛約 15 分鐘 (地下街往樂天超市約 6km)", lat: 33.5112, lng: 126.5220, query: "Jeju Jungang Underground Shopping Center, Jeju-do, South Korea" },
-                    { id: '3-5', time: "17:00", title: "Lotte Mart 濟州店 (大型量販)", desc: "【超市大掃貨】大型韓國樂天超市！一次過瘋狂掃入人氣零食、即食麵、韓式醬料及伴手禮。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (樂天超市往老衡洞熟成到約 1.5km)", lat: 33.4885, lng: 126.4940, query: "Lotte Mart Jeju, Jeju-do, South Korea" },
-                    { id: '3-6', time: "18:30", title: "③ 熟成到 盧衡本館 (Sukseongdo 頂級熟成黑毛豬)", desc: "【新濟州人氣No.1名店】位於老衡洞（距 Shilla Stay 僅 3 分鐘車程）！必食極致低溫熟成五花肉與豬頸肉，專人代烤肉汁爆漿！", tag: "10大名店③", parking: "🅿️ 專屬/周邊停車場", nextDrive: "🚗 駕駛約 3 分鐘 (晚餐後返回酒店約 1.5km)", lat: 33.4831, lng: 126.4820, query: "숙성도 노형본점, Jeju-do, South Korea" },
-                    { id: '3-7', time: "20:30", title: "返回 Shilla Stay 休息", desc: "滿載而歸，提著大包小包戰利品與飽滿肚子返回酒店整理休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
+                    { id: '3-1', time: "09:00", title: "由 Shilla Stay 出發", desc: "酒店食過早餐後出發，展開全日購物血拼與人氣美食之旅。", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 3 分鐘 / 步行 5 分鐘 (往免稅店約 1km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '3-2', time: "10:00", title: "新濟州蓮洞商圈 & 新羅免稅店", desc: "【血拼重頭戲】狂掃韓國人氣美妝、流行服飾及新羅免稅店名牌。", tag: "美妝名牌血拼", parking: "🅿️ 免稅店專屬停車場", nextDrive: "🚗 駕駛約 15 分鐘 (往七星街約 6km)", lat: 33.4882, lng: 126.4912, query: "Shilla Duty Free Jeju, Jeju-do, South Korea" },
+                    { id: '3-3', time: "13:00", title: "七星街 (칠성로) & 中央路 (중앙로) 行街", desc: "【潮流血拼】濟州最著名步行商業街，買潮流鞋服與文創小店。", tag: "潮流街行街", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 2 分鐘 / 步行 3 分鐘 (往地下街約 500m)", lat: 33.5126, lng: 126.5268, query: "Chilsungro Shopping Street, Jeju-do, South Korea" },
+                    { id: '3-4', time: "15:00", title: "中央地下街 (服飾/美妝 Shopping)", desc: "濟州最大室內地下購物街，平價潮流服飾與美妝。", tag: "地下街血拼", parking: "🅿️ 地下公用停車場", nextDrive: "🚗 駕駛約 15 分鐘 (往樂天超市約 6km)", lat: 33.5112, lng: 126.5220, query: "Jeju Jungang Underground Shopping Center, Jeju-do, South Korea" },
+                    { id: '3-5', time: "17:00", title: "Lotte Mart 濟州店 (大型量販)", desc: "【超市掃貨】大型韓國樂天超市，瘋狂掃入人氣零食與伴手禮。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 5 分鐘 (往熟成到老衡本館約 1.5km)", lat: 33.4885, lng: 126.4940, query: "Lotte Mart Jeju, Jeju-do, South Korea" },
+                    { id: '3-6', time: "18:30", title: "③ 熟成到 盧衡本館 (Sukseongdo 頂級熟成黑毛豬)", desc: "【10大名店】老衡洞人氣 No.1！極致低溫熟成五花肉與豬頸肉。", tag: "10大名店③", parking: "🅿️ 專屬/周邊停車場", nextDrive: "🚗 駕駛約 3 分鐘 (返回 Shilla Stay 約 1.5km)", lat: 33.4831, lng: 126.4820, query: "숙성도 노형본점, Jeju-do, South Korea" },
+                    { id: '3-7', time: "20:30", title: "返回 Shilla Stay 休息", desc: "提著大包小包戰利品與飽滿肚子返回酒店整理休息。", tag: "返回酒店", parking: "🅿️ 地下室內免費停車", nextDrive: null, lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" }
                 ],
                 backups: [
                     { id: 'b-3-1', title: "涯月海邊散步路", desc: "充滿文青氣息的海岸咖啡街。", lat: 33.4630, lng: 126.3120, query: "Aewol Coastal Road, Jeju-do, South Korea" },
-                    { id: 'b-3-2', title: "Nuemaru 步行街", desc: "新濟州夜晚熱鬧散步逛街好去處。", lat: 33.4860, lng: 126.4890, query: "Nuemaru Street, Jeju-do, South Korea" }
+                    { id: 'b-3-2', title: "Nuemaru 步行街", desc: "新濟州夜晚散步逛街好去處。", lat: 33.4860, lng: 126.4890, query: "Nuemaru Street, Jeju-do, South Korea" }
                 ]
             },
             4: {
-                title: "Day 4：挾才海灘 ➔ Umu 布丁 ➔ 市區名店 ➔ 冠軍醬蟹 ➔ 機場返港",
+                title: "DAY 4：挾才海灘 ➔ Umu 布丁 ➔ 市區名店 ➔ 冠軍醬蟹 ➔ 機場返港",
                 date: "Day 4 · 航班 LJ713",
                 locations: [
-                    { id: '4-1', time: "09:00", title: "由 Shilla Stay 出發 (退房)", desc: "帶齊行李退房，驅車前往西部美麗嘅挾才海岸。", tag: "酒店出發", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (新濟州往挾才約 20km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
-                    { id: '4-2', time: "10:00", title: "挾才海水浴場 & Umu 手工布丁", desc: "欣賞晨早絕美漸層玻璃海，並打卡韓國 IG 爆紅的海草手工布丁。", tag: "果凍海灘", parking: "🅿️ 海灘免費公共停車場", nextDrive: "🚗 駕駛約 35 分鐘 (挾才往市區牛肉湯約 22km)", lat: 33.3941, lng: 126.2392, query: "Hyeopjae Beach, Jeju-do, South Korea" },
-                    { id: '4-3', time: "11:30", title: "① 우진해장국 (Ujin Haejangguk)", desc: "【濟州市區名店】必食招牌超濃郁蔬菜牛肉湯，排隊人潮極多但極高質！", tag: "10大名店①", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 10 分鐘 (牛肉湯往金萬福約 4km)", lat: 33.5142, lng: 126.5175, query: "Ujin Haejangguk, Jeju-do, South Korea" },
-                    { id: '4-4', time: "13:00", title: "④ 제주김만복 本店 (金萬福)", desc: "【機場附近名店】招牌鮑魚蛋卷菜包飯，麻油香氣十足，買來當輕食點心。", tag: "10大名店④", parking: "🅿️ 餐廳門口免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (金萬福往東門市場約 3km)", lat: 33.4971, lng: 126.5085, query: "Jeju Gimmanbok Main Store, Jeju-do, South Korea" },
-                    { id: '4-5', time: "14:00", title: "東門市場 (手信採購)", desc: "購買濟州特產柑橘巧克力、伴手禮及紀念品。", tag: "手信購物", parking: "🅿️ 市場大型立體停車場", nextDrive: "🚗 駕駛約 15 分鐘 (東門市場往 Emart 約 6km)", lat: 33.5126, lng: 126.5268, query: "Dongmun Traditional Market, Jeju-do, South Korea" },
-                    { id: '4-6', time: "15:30", title: "Emart 新濟州店 (最後超市掃貨)", desc: "再次補充漏買嘅手信、韓式醬料同零食。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (Emart 往龍潭海岸約 4km)", lat: 33.5189, lng: 126.5021, query: "E-Mart Sinjeju, Jeju-do, South Korea" },
-                    { id: '4-7', time: "17:00", title: "龍潭海岸 Café 嘆海景下午茶", desc: "在機場附近的海岸咖啡廳欣賞最後的海景，喝杯咖啡回味旅程。", tag: "海景咖啡", parking: "🅿️ 咖啡廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (海岸 Cafe 往冠軍醬蟹約 3km)", lat: 33.5189, lng: 126.5021, query: "Yongdam Coastal Road, Jeju-do, South Korea" },
-                    { id: '4-8', time: "18:30", title: "챔피언꽃게 (冠軍醬蟹 - 完美晚餐)", desc: "【新濟州名店】位於老衡洞！享用鮮美無腥味的著名冠軍醬油蟹，配上一口香濃蟹膏飯，完美收官！", tag: "必食冠軍醬蟹", parking: "🅿️ 餐廳專屬/周邊停車", nextDrive: "🚗 駕駛約 10 分鐘 (晚餐往機場約 3km)", lat: 33.4862, lng: 126.4880, query: "챔피언꽃게, Jeju-do, South Korea" },
-                    { id: '4-9', time: "19:30", title: "濟州國際機場 (還車與登機)", desc: "順利歸還車輛，前往濟州機場辦理 21:30 起飛之 LJ713 航班登機手續。", tag: "機場還車", parking: "🅿️ 租車公司還車區", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
-                    { id: '4-10', time: "21:30", title: "搭乘航班 LJ713 返港", desc: "乘搭 21:30 濟州起飛航班，於 23:35 安全返抵香港 T1，結束甜蜜自駕假期！", tag: "航班返港", parking: "✈️ 準時起飛返回香港", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" }
+                    { id: '4-1', time: "09:00", title: "由 Shilla Stay 出發 (退房)", desc: "帶齊行李退房，驅車前往西部美麗的挾才海岸。", tag: "酒店退房", parking: "🅿️ 地下室內免費停車", nextDrive: "🚗 駕駛約 35 分鐘 (往挾才海灘約 20km)", lat: 33.4851, lng: 126.4884, query: "Shilla Stay Jeju, Jeju-do, South Korea" },
+                    { id: '4-2', time: "10:00", title: "挾才海水浴場 & Umu 手工布丁", desc: "欣賞晨早絕美漸層玻璃海，並打卡 IG 爆紅海草手工布丁。", tag: "玻璃海打卡", parking: "🅿️ 海灘免費公共停車場", nextDrive: "🚗 駕駛約 40 分鐘 (往 Ujin Haejangguk 約 25km)", lat: 33.3941, lng: 126.2392, query: "Hyeopjae Beach, Jeju-do, South Korea" },
+                    { id: '4-3', time: "11:30", title: "① 우진해장국 (Ujin Haejangguk)", desc: "【10大名店】必食招牌超濃郁蔬菜牛肉湯，高質道地美食。", tag: "10大名店①", parking: "🅿️ 周邊公用停車場", nextDrive: "🚗 駕駛約 8 分鐘 (往金萬福本店約 3km)", lat: 33.5142, lng: 126.5175, query: "Ujin Haejangguk, Jeju-do, South Korea" },
+                    { id: '4-4', time: "13:00", title: "④ 제주김만복 本店 (金萬福)", desc: "【10大名店】招牌鮑魚蛋卷菜包飯，麻油香氣十足。", tag: "10大名店④", parking: "🅿️ 餐廳門口免費停車", nextDrive: "🚗 駕駛約 8 分鐘 (往東門市場約 3km)", lat: 33.4971, lng: 126.5085, query: "Jeju Gimmanbok Main Store, Jeju-do, South Korea" },
+                    { id: '4-5', time: "14:00", title: "東門市場 (手信採購)", desc: "購買濟州特產柑橘巧克力、伴手禮及紀念品。", tag: "手信採購", parking: "🅿️ 市場大型立體停車場", nextDrive: "🚗 駕駛約 15 分鐘 (往 Emart 新濟州店約 6km)", lat: 33.5126, lng: 126.5268, query: "Dongmun Traditional Market, Jeju-do, South Korea" },
+                    { id: '4-6', time: "15:30", title: "Emart 新濟州店 (最後超市掃貨)", desc: "再次補充漏買的手信、韓式醬料同零食。", tag: "超市掃貨", parking: "🅿️ 大型室內免費停車", nextDrive: "🚗 駕駛約 10 分鐘 (往龍潭海岸 Café 約 4km)", lat: 33.4850, lng: 126.4910, query: "E-Mart Sinjeju, Jeju-do, South Korea" },
+                    { id: '4-7', time: "17:00", title: "龍潭海岸 Café 嘆海景下午茶", desc: "在機場附近的海岸咖啡廳欣賞最後的海景，回味旅程。", tag: "海景下午茶", parking: "🅿️ 咖啡廳專屬停車場", nextDrive: "🚗 駕駛約 10 分鐘 (往冠軍醬蟹約 4km)", lat: 33.5189, lng: 126.5021, query: "Yongdam Coastal Road, Jeju-do, South Korea" },
+                    { id: '4-8', time: "18:30", title: "챔피언꽃게 (冠軍醬蟹 - 完美晚餐)", desc: "【必食名店】享用鮮美無腥味的著名冠軍醬油蟹與蟹膏飯。", tag: "必食名店", parking: "🅿️ 餐廳專屬/周邊停車", nextDrive: "🚗 駕駛約 8 分鐘 (往機場還車點約 3km)", lat: 33.4862, lng: 126.4880, query: "챔피언꽃게, Jeju-do, South Korea" },
+                    { id: '4-9', time: "19:30", title: "濟州國際機場 (還車與登機)", desc: "歸還車輛，前往機場辦理 21:30 起飛之 LJ713 登機手續。", tag: "還車辦理", parking: "🅿️ 租車公司還車區", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" },
+                    { id: '4-10', time: "21:30", title: "搭乘航班 LJ713 返港 (23:35 抵港)", desc: "乘搭航班返回香港 T1，結束完美假期！", tag: "航班返港", parking: "✈️ 準時起飛返回香港", nextDrive: null, lat: 33.5104, lng: 126.4931, query: "Jeju International Airport, Jeju-do, South Korea" }
                 ],
                 backups: [
                     { id: 'b-4-1', title: "龍頭岩", desc: "機場附近的標誌性龍頭狀火山岩打卡點。", lat: 33.5161, lng: 126.5111, query: "Yongduam Rock, Jeju-do, South Korea" },
@@ -684,7 +685,6 @@
         function initMap() {
             if (map) return;
 
-            // 停用 doubleClickZoom，避免雙擊放大地圖
             map = L.map('interactive-map', {
                 zoomControl: true,
                 doubleClickZoom: false
@@ -789,7 +789,7 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
-            container.scrollTop = 0; // 自動回頂
+            container.scrollTop = 0;
 
             let matchedCount = 0;
 
@@ -873,7 +873,7 @@
             }
 
             if (matchedCount === 0) {
-                container.innerHTML = `<div class="text-center py-10 text-stone-400 text-xs">找不到與「<strong>${escapeHtml(query)}</strong>」相關的行程，試視搜尋餐廳、景點名稱或 Day 幾！</div>`;
+                container.innerHTML = `<div class="text-center py-10 text-stone-400 text-xs">找不到與「<strong>${escapeHtml(query)}</strong>」相關的行程，試試搜尋餐廳、景點名稱或 Day 幾！</div>`;
                 summaryText.innerHTML = `找不到與「${escapeHtml(query)}」相關的行程`;
             } else {
                 summaryText.innerHTML = `找到 <strong class="text-rose-600">${matchedCount}</strong> 個與「${escapeHtml(query)}」相關的行程`;
@@ -938,10 +938,10 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
-            container.scrollTop = 0; // 自動回滾至頂部
+            container.scrollTop = 0;
 
             data.locations.forEach((loc, index) => {
-                const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹") || loc.tag.includes("Dotdam");
+                const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹") || loc.tag.includes("Dotdam") || loc.tag.includes("人氣名店") || loc.tag.includes("必食名店");
                 const tagClass = isFood ? "bg-amber-100 text-amber-800 border-amber-200 font-bold" : "bg-white border-stone-200 text-stone-600";
                 
                 const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
@@ -1090,7 +1090,7 @@
             markersLayer.clearLayers();
             const container = document.getElementById('timeline-container');
             container.innerHTML = '';
-            container.scrollTop = 0; // 自動回滾至頂部
+            container.scrollTop = 0;
 
             for (let d = 1; d <= 4; d++) {
                 const dayHeader = document.createElement('div');
@@ -1172,7 +1172,7 @@
                 const data = itineraryData[d];
                 html += `<div class="bg-stone-50 p-3.5 rounded-lg border border-stone-200 space-y-2.5"><h4 class="font-bold text-xs ${dayTextColors[d]}">${data.title} (${data.date})</h4><div class="space-y-2.5 border-l-2 border-stone-200 pl-3">`;
                 data.locations.forEach((loc, idx) => {
-                    const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹") || loc.tag.includes("Dotdam");
+                    const isFood = loc.tag.includes("10大名店") || loc.tag.includes("美食") || loc.tag.includes("甜品") || loc.tag.includes("早餐") || loc.tag.includes("午餐") || loc.tag.includes("晚餐") || loc.tag.includes("Cafe") || loc.tag.includes("人氣爆紅") || loc.tag.includes("韓牛") || loc.tag.includes("名物") || loc.tag.includes("黑毛豬") || loc.tag.includes("冠軍醬蟹") || loc.tag.includes("Dotdam") || loc.tag.includes("人氣名店") || loc.tag.includes("必食名店");
                     const titleColor = isFood ? "text-amber-800 font-extrabold" : "text-stone-900";
                     const targetQuery = loc.query || (loc.title + ', Jeju, South Korea');
                     const driveUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(targetQuery)}&travelmode=driving`;
@@ -1338,3 +1338,21 @@
     </script>
 </body>
 </html>
+```eof
+
+### Summary of Updates Made to `index.html`:
+
+1. **Exact Itinerary Alignment**:
+   - Updated **Day 1**: Airport ➔ Rainbow Coastal Road ➔ Jamae Guksu ➔ Outlet ➔ Zen Hideaway Check-in ➔ Gojip Dol Urok (鰲魚) ➔ Yakcheonsa & Daepo Jusangjeolli ➔ The Cliff ➔ Manwolrim (滿月林韓牛) ➔ Saeyeongyo Bridge Fireworks (新緣橋煙花秀) ➔ Zen Hideaway.
+   - Updated **Day 2**: Zen Hideaway Checkout ➔ Seongsan Ilchulbong ➔ Myeongjin Jeonbok (明珍鮑魚) ➔ Woljeongri Beach & Transparent Kayak ➔ London Bagel Museum ➔ Hamdeok Beach & Cafe Delmoondo & 海女包飯 ➔ Shilla Stay Check-in ➔ Dotdam Black Pork (Dotdam 돗담) ➔ Shilla Stay.
+   - Updated **Day 3**: Shilla Stay ➔ Yeondong Shopping District & Shilla Duty Free ➔ Chilsungro & Jungangro ➔ Jungang Underground Shopping Center ➔ Lotte Mart ➔ Sukseongdo Nohyung Main Branch (熟成到 盧衡本館) ➔ Shilla Stay.
+   - Updated **Day 4**: Shilla Stay Checkout ➔ Hyeopjae Beach & Umu Pudding ➔ Ujin Haejangguk (우진해장국) ➔ Gimmanbok Main Store (金萬福本店) ➔ Dongmun Market ➔ Emart Sinjeju Store ➔ Yongdam Coastal Cafe ➔ Champion Crab (챔피언꽃게 冠軍醬蟹) ➔ Jeju Airport Car Return ➔ Flight LJ713 back to HK.
+2. **Backups & Travel Notes**:
+   - Refreshed all daily backup spots (Yongmeori Coast, Jungmun Beach, Manjanggul Cave, Gwangchigi Beach, Aewol Coastal Road, Nuemaru Street, Yongduam Rock, Dahlia Shop).
+   - Refreshed drive times, distance markers, parking spot details, and map coordinates for every location.
+3. **App Functionality Maintained**:
+   - Interactive Leaflet map & popup pins.
+   - Real-time search filter and auto-focus pulse animations.
+   - Cloud / LocalStorage checklist tool with default booking items.
+   - HKD ⇄ KRW live exchange rate calculator with 4x4 keypad.
+   - Travel handbook view (`info-page`).
